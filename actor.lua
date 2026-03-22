@@ -15,35 +15,6 @@ local function getCharacter()
     return localPlayer.Character
 end
 
-local function muteEffectSounds(effectName)
-    local effectFolder = RS.Assets.Effects:FindFirstChild(effectName)
-    if not effectFolder then return end
-    for _, v in pairs(effectFolder:GetDescendants()) do
-        if v:IsA("Sound") then
-            v.Volume = 0
-            pcall(function() hookfunction(v.Play, function() return end) end)
-        end
-    end
-end
-
-local realEffect = data.Effects and data.Effects.Equipped
-if realEffect then muteEffectSounds(realEffect) end
-
-local RunService = game:GetService("RunService")
-RunService.Heartbeat:Connect(function()
-    local char = getCharacter()
-    if not char then return end
-    local bball = char:FindFirstChild("Basketball")
-    if not bball then return end
-    local attach = bball:FindFirstChild("Attach")
-    if not attach then return end
-    for _, v in pairs(attach:GetDescendants()) do
-        if v:IsA("Sound") and v.Volume > 0 then
-            v.Volume = 0
-        end
-    end
-end)
-
 local function WaitForChildWhichIsA(self, ClassName)
     while self:FindFirstChildWhichIsA(ClassName) == nil do
         task.wait()
@@ -283,7 +254,6 @@ if character then character.ChildAdded:Connect(onBallAdded) end
 
 localPlayer.CharacterAdded:Connect(function(newChar)
     newChar.ChildAdded:Connect(onBallAdded)
-    if realEffect then muteEffectSounds(realEffect) end
 end)
 
 print("Unlock All loaded!")
