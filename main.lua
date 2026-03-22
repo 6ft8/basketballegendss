@@ -21,9 +21,6 @@ local gui = player.PlayerGui
 --// Guard Remote
 local GuardRemote = ReplicatedStorage.Packages.Knit.Services.ControlService.RE.Guard
 
---// Sound fix default on
-_G.soundFixEnabled = true
-
 --// ================================
 --// PERFECT SHOT LOGIC
 --// ================================
@@ -342,7 +339,12 @@ end)
 if run_on_actor and getactors then
     run_on_actor(getactors()[1], game:HttpGet("https://raw.githubusercontent.com/6ft8/basketballegendss/refs/heads/main/actor.lua"))
 else
-    print("Unlock All requires a compatible executor!")
+    Rayfield:Notify({
+        Title = "Unlock All",
+        Content = "Unlock All requires Delta executor!",
+        Duration = 5,
+        Image = 14309739645,
+    })
 end
 
 --// ================================
@@ -559,23 +561,7 @@ PostTab:CreateSlider({
 --// UNLOCK ALL TAB
 local UnlockTab = Window:CreateTab("Unlock All", 4483362458)
 UnlockTab:CreateSection("Cosmetics")
-UnlockTab:CreateLabel("Compatible executors: Delta, Potassium, Volt, Volcano, Wave, Isaeva. Unlock All will NOT work on other executors.")
-UnlockTab:CreateLabel("All skins and effects are unlocked! Open your in-game inventory to equip them.")
-
-UnlockTab:CreateToggle({
-    Name = "Mute Real Effect Sounds",
-    CurrentValue = true,
-    Flag = "SoundFix",
-    Callback = function(value)
-        _G.soundFixEnabled = value
-        Rayfield:Notify({
-            Title = "Sound Fix",
-            Content = value and "Real effect sounds muted!" or "Real effect sounds enabled!",
-            Duration = 2,
-            Image = 14309739645,
-        })
-    end,
-})
+UnlockTab:CreateLabel("All skins and effects unlocked! Open inventory to equip them.")
 
 --// Done
 Rayfield:Notify({
