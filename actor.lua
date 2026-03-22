@@ -16,7 +16,6 @@ local function getCharacter()
 end
 
 local function muteEffectSounds(effectName)
-    if not _G.soundFixEnabled then return end
     local effectFolder = RS.Assets.Effects:FindFirstChild(effectName)
     if not effectFolder then return end
     for _, v in pairs(effectFolder:GetDescendants()) do
@@ -32,7 +31,6 @@ if realEffect then muteEffectSounds(realEffect) end
 
 local RunService = game:GetService("RunService")
 RunService.Heartbeat:Connect(function()
-    if not _G.soundFixEnabled then return end
     local char = getCharacter()
     if not char then return end
     local bball = char:FindFirstChild("Basketball")
