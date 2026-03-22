@@ -339,12 +339,7 @@ end)
 if run_on_actor and getactors then
     run_on_actor(getactors()[1], game:HttpGet("https://raw.githubusercontent.com/6ft8/basketballegendss/refs/heads/main/actor.lua"))
 else
-    Rayfield:Notify({
-        Title = "Unlock All",
-        Content = "Unlock All requires Delta executor!",
-        Duration = 5,
-        Image = 14309739645,
-    })
+    print("Unlock All requires a compatible executor!")
 end
 
 --// ================================
@@ -562,6 +557,7 @@ PostTab:CreateSlider({
 local UnlockTab = Window:CreateTab("Unlock All", 4483362458)
 UnlockTab:CreateSection("Cosmetics")
 UnlockTab:CreateLabel("All skins and effects unlocked! Open inventory to equip them.")
+UnlockTab:CreateLabel("Compatible executors: Delta, Potassium, Volt, Volcano, Wave, Isaeva.")
 
 --// Done
 Rayfield:Notify({
