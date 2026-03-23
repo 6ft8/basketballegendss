@@ -54,7 +54,6 @@ end
 local ball = localPlayer.Character and localPlayer.Character:FindFirstChild("Basketball")
 local currentSkin = data.Skins.Equipped
 local currentEffect = data.Effects.Equipped
-local ourBall = nil
 local ourBallEffect = false
 local oldEffects = {}
 local selectionList = localPlayer.PlayerGui.Main.Inventory.Glow.Inventory.Main.Selection.List
@@ -177,19 +176,14 @@ visuals.Effect = function(self, effect, ...)
         local hrp = args[3]
         local liveChar = getCharacter()
         if hrp and liveChar and hrp:IsDescendantOf(liveChar) and currentEffect then
-            ourBall = args[2]
             ourBallEffect = true
             return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
         else
-            ourBall = nil
             ourBallEffect = false
         end
     end
     if effect == "BallEffect" then
-        local basketball = args[3]
-        local isOurs = (basketball and basketball == ourBall) or ourBallEffect
-        if isOurs and currentEffect then
-            ourBall = nil
+        if ourBallEffect and currentEffect then
             ourBallEffect = false
             return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
         end
