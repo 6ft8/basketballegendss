@@ -150,21 +150,14 @@ RunService.Heartbeat:Connect(function()
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
-    for _, v in ipairs(workspace:GetDescendants()) do
+    for _, v in ipairs(workspace:GetChildren()) do
         if v:IsA("BasePart") and v.Name == "Basketball" then
             local dist = (hrp.Position - v.Position).Magnitude
             if dist <= MagsDist then
-                for _ = 1, 3 do
-                    local touch = v:FindFirstChildOfClass("TouchTransmitter")
-                    if not touch then
-                        for _, d in ipairs(v:GetDescendants()) do
-                            if d:IsA("TouchTransmitter") then touch = d break end
-                        end
-                    end
-                    if touch then
-                        firetouchinterest(hrp, v, 0)
-                        firetouchinterest(hrp, v, 1)
-                    end
+                local touch = v:FindFirstChildOfClass("TouchTransmitter")
+                if touch then
+                    firetouchinterest(hrp, v, 0)
+                    firetouchinterest(hrp, v, 1)
                 end
             end
         end
@@ -448,10 +441,10 @@ MagnetTab:CreateToggle({
 
 MagnetTab:CreateSlider({
     Name = "Magnet Range",
-    Range = {10, 85},
+    Range = {5, 35},
     Increment = 5,
     Suffix = " studs",
-    CurrentValue = 30,
+    CurrentValue = 20,
     Flag = "MagnetRange",
     Callback = function(value)
         MagsDist = value
