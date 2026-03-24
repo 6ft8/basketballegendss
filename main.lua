@@ -15,6 +15,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
 local player = Players.LocalPlayer
 local gui = player.PlayerGui
 
@@ -139,9 +140,94 @@ player.CharacterAdded:Connect(function()
 end)
 
 --// ================================
+--// ANTI STEAL LOGIC
+--// ================================
+local antiStealEnabled = false
+local antiStealActor = nil
+
+local function startAntiSteal()
+    local playerScripts = player.PlayerScripts
+    local actor = playerScripts:FindFirstChildOfClass("Actor")
+    if not actor then return end
+    antiStealActor = actor
+    run_on_actor(actor, [[
+        local RS = game:GetService("ReplicatedStorage")
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local RunService = game:GetService("RunService")
+        local knit = require(RS.Packages.Knit)
+
+        local ControlRE = RS.Packages.Knit.Services.ControlService.RE
+        local StartDribble = ControlRE.StartDribble
+
+        local SPAM_SOUND_ID = "rbxassetid://9082592208"
+
+        local function suppressSpamSound()
+            for _, v in ipairs(workspace:GetChildren()) do
+                if v.Name == "Basketball" and v:IsA("BasePart") then
+                    for _, s in ipairs(v:GetChildren()) do
+                        if s:IsA("Sound") and s.SoundId == SPAM_SOUND_ID then
+                            s.Volume = 0
+                        end
+                    end
+                end
+            end
+            local char = LocalPlayer.Character
+            if char then
+                for _, s in ipairs(char:GetDescendants()) do
+                    if s:IsA("Sound") and s.SoundId == SPAM_SOUND_ID then
+                        s.Volume = 0
+                    end
+                end
+            end
+        end
+
+        workspace.ChildAdded:Connect(function(child)
+            if child.Name == "Basketball" then
+                task.wait(0.05)
+                suppressSpamSound()
+                child.ChildAdded:Connect(function(s)
+                    if s:IsA("Sound") and s.SoundId == SPAM_SOUND_ID then
+                        s.Volume = 0
+                    end
+                end)
+            end
+        end)
+
+        suppressSpamSound()
+
+        local function hasBall()
+            local char = LocalPlayer.Character
+            return char and char:FindFirstChild("Basketball") and char.Basketball:IsA("Tool")
+        end
+
+        local directions = {"Left", "Right", "Forward", "Back"}
+        local dirIndex = 1
+        local lastFire = 0
+        local INTERVAL = 0.05
+
+        _G.antiStealActive = true
+
+        RunService.Heartbeat:Connect(function()
+            if not _G.antiStealActive then return end
+            if not hasBall() then return end
+            local now = tick()
+            if now - lastFire < INTERVAL then return end
+            lastFire = now
+            suppressSpamSound()
+            local dir = directions[dirIndex]
+            dirIndex = dirIndex % #directions + 1
+            pcall(function() StartDribble:FireServer(dir) end)
+        end)
+
+        print("Anti steal active!")
+    ]])
+end
+
+--// ================================
 --// BALL MAGNET LOGIC
 --// ================================
-local MagsDist = 30
+local MagsDist = 20
 local magnetEnabled = false
 
 RunService.Heartbeat:Connect(function()
@@ -387,9 +473,9 @@ ShotTab:CreateDropdown({
     end,
 })
 
---// STEAL REACH TAB
-local StealTab = Window:CreateTab("Steal Reach", "hand")
-StealTab:CreateSection("Hitbox Settings")
+--// STEAL SETTINGS TAB
+local StealTab = Window:CreateTab("Steal Settings", "hand")
+StealTab:CreateSection("Steal Reach")
 
 StealTab:CreateToggle({
     Name = "Steal Reach Enabled",
@@ -420,6 +506,29 @@ StealTab:CreateSlider({
     end,
 })
 
+StealTab:CreateSection("Anti Steal")
+
+StealTab:CreateToggle({
+    Name = "Anti Steal Enabled",
+    CurrentValue = false,
+    Flag = "AntiStealEnabled",
+    Callback = function(value)
+        antiStealEnabled = value
+        if value then
+            _G.antiStealActive = true
+            startAntiSteal()
+        else
+            _G.antiStealActive = false
+        end
+        Rayfield:Notify({
+            Title = "Anti Steal",
+            Content = value and "Anti Steal enabled! Anyone who tries to steal gets anklebroken!" or "Anti Steal disabled!",
+            Duration = 2,
+            Image = 14309739645,
+        })
+    end,
+})
+
 --// BALL MAGNET TAB
 local MagnetTab = Window:CreateTab("Ball Magnet", "magnet")
 MagnetTab:CreateSection("Magnet Settings")
@@ -441,7 +550,7 @@ MagnetTab:CreateToggle({
 
 MagnetTab:CreateSlider({
     Name = "Magnet Range",
-    Range = {5, 35},
+    Range = {5, 30},
     Increment = 5,
     Suffix = " studs",
     CurrentValue = 20,
@@ -551,6 +660,74 @@ local UnlockTab = Window:CreateTab("Unlock All", 4483362458)
 UnlockTab:CreateSection("Cosmetics")
 UnlockTab:CreateLabel("All skins and effects unlocked! Open inventory to equip them.")
 UnlockTab:CreateLabel("Compatible executors: Delta, Potassium, Volt, Volcano, Wave, Isaeva.")
+
+--// SETTINGS TAB
+local SettingsTab = Window:CreateTab("Settings", "settings")
+
+SettingsTab:CreateSection("Theme")
+SettingsTab:CreateColorPicker({
+    Name = "Accent Color",
+    Color = Color3.fromRGB(0, 135, 255),
+    Flag = "AccentColor",
+    Callback = function(value)
+        Rayfield:SetAccentColor(value)
+    end,
+})
+
+SettingsTab:CreateSection("Keybinds")
+SettingsTab:CreateKeybind({
+    Name = "Perfect Shot Key",
+    CurrentKeybind = "E",
+    HoldToInteract = false,
+    Flag = "ShootKeybind",
+    Callback = function(keybind)
+        Config.ShootKey = Enum.KeyCode[keybind]
+        Rayfield:Notify({
+            Title = "Keybind Updated",
+            Content = "Shot key set to " .. keybind,
+            Duration = 2,
+            Image = 14309739645,
+        })
+    end,
+})
+
+SettingsTab:CreateSection("Server")
+SettingsTab:CreateButton({
+    Name = "Server Hop",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Server Hop",
+            Content = "Finding new server...",
+            Duration = 2,
+            Image = 14309739645,
+        })
+        local placeId = game.PlaceId
+        local servers = {}
+        local ok, pages = pcall(function()
+            return game:GetService("HttpService"):JSONDecode(
+                game:HttpGet("https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100")
+            )
+        end)
+        if ok and pages and pages.data then
+            for _, server in ipairs(pages.data) do
+                if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                    table.insert(servers, server.id)
+                end
+            end
+        end
+        if #servers > 0 then
+            local randomServer = servers[math.random(1, #servers)]
+            TeleportService:TeleportToPlaceInstance(placeId, randomServer, player)
+        else
+            Rayfield:Notify({
+                Title = "Server Hop",
+                Content = "No available servers found!",
+                Duration = 3,
+                Image = 14309739645,
+            })
+        end
+    end,
+})
 
 --// Done
 Rayfield:Notify({
