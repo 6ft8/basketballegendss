@@ -149,7 +149,6 @@ local function startAntiSteal()
     local playerScripts = player.PlayerScripts
     local actor = playerScripts:FindFirstChildOfClass("Actor")
     if not actor then return end
-    antiStealActor = actor
     run_on_actor(actor, [[
         local RS = game:GetService("ReplicatedStorage")
         local Players = game:GetService("Players")
@@ -160,41 +159,32 @@ local function startAntiSteal()
         local ControlRE = RS.Packages.Knit.Services.ControlService.RE
         local StartDribble = ControlRE.StartDribble
 
-        local SPAM_SOUND_ID = "rbxassetid://9082592208"
-
-        local function suppressSpamSound()
+        local function muteWorkspaceBallStart()
             for _, v in ipairs(workspace:GetChildren()) do
                 if v.Name == "Basketball" and v:IsA("BasePart") then
                     for _, s in ipairs(v:GetChildren()) do
-                        if s:IsA("Sound") and s.SoundId == SPAM_SOUND_ID then
+                        if s:IsA("Sound") and s.Name == "Start" then
                             s.Volume = 0
                         end
                     end
-                end
-            end
-            local char = LocalPlayer.Character
-            if char then
-                for _, s in ipairs(char:GetDescendants()) do
-                    if s:IsA("Sound") and s.SoundId == SPAM_SOUND_ID then
-                        s.Volume = 0
-                    end
+                    v.ChildAdded:Connect(function(s)
+                        if s:IsA("Sound") and s.Name == "Start" then
+                            task.wait()
+                            s.Volume = 0
+                        end
+                    end)
                 end
             end
         end
 
-        workspace.ChildAdded:Connect(function(child)
-            if child.Name == "Basketball" then
+        workspace.ChildAdded:Connect(function(v)
+            if v.Name == "Basketball" and v:IsA("BasePart") then
                 task.wait(0.05)
-                suppressSpamSound()
-                child.ChildAdded:Connect(function(s)
-                    if s:IsA("Sound") and s.SoundId == SPAM_SOUND_ID then
-                        s.Volume = 0
-                    end
-                end)
+                muteWorkspaceBallStart()
             end
         end)
 
-        suppressSpamSound()
+        muteWorkspaceBallStart()
 
         local function hasBall()
             local char = LocalPlayer.Character
@@ -214,13 +204,12 @@ local function startAntiSteal()
             local now = tick()
             if now - lastFire < INTERVAL then return end
             lastFire = now
-            suppressSpamSound()
             local dir = directions[dirIndex]
             dirIndex = dirIndex % #directions + 1
             pcall(function() StartDribble:FireServer(dir) end)
         end)
 
-        print("Anti steal active!")
+        print("Anti steal v2 active!")
     ]])
 end
 
@@ -658,21 +647,11 @@ PostTab:CreateSlider({
 --// UNLOCK ALL TAB
 local UnlockTab = Window:CreateTab("Unlock All", 4483362458)
 UnlockTab:CreateSection("Cosmetics")
-UnlockTab:CreateLabel("All skins and effects unlocked! Open inventory to equip them.")
+UnlockTab:CreateLabel("All skins and effects UNLOCKEDDDD! open your inventory to equip them.")
 UnlockTab:CreateLabel("Compatible executors: Delta, Potassium, Volt, Volcano, Wave, Isaeva.")
 
 --// SETTINGS TAB
 local SettingsTab = Window:CreateTab("Settings", "settings")
-
-SettingsTab:CreateSection("Theme")
-SettingsTab:CreateColorPicker({
-    Name = "Accent Color",
-    Color = Color3.fromRGB(0, 135, 255),
-    Flag = "AccentColor",
-    Callback = function(value)
-        Rayfield:SetAccentColor(value)
-    end,
-})
 
 SettingsTab:CreateSection("Keybinds")
 SettingsTab:CreateKeybind({
