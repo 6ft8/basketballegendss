@@ -175,21 +175,28 @@ visuals.Effect = function(self, effect, ...)
     if effect == "StartBallEffect" then
         local hrp = args[3]
         local liveChar = getCharacter()
+        -- Only intercept if the HRP belongs to our character
         if hrp and liveChar and hrp:IsDescendantOf(liveChar) and currentEffect then
             ourBallEffect = true
             return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
         else
+            -- Not our shot, pass through untouched
             ourBallEffect = false
+            return oldEffect(self, effect, unpack(args))
         end
     end
     if effect == "BallEffect" then
         if ourBallEffect and currentEffect then
             ourBallEffect = false
             return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
+        else
+            -- Not our ball effect, pass through untouched
+            return oldEffect(self, effect, unpack(args))
         end
     end
     return oldEffect(self, effect, unpack(args))
 end
+
 
 local equipRE = RS.Packages.Knit.Services.EconomyService.RE.Equip
 local rmt = getrawmetatable(equipRE)
