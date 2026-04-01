@@ -1,0 +1,1310 @@
+--// Basketball Legends - falzzz hub
+--// Perfect shot by @falzzz, Steal + Magnet by Kali Hub, Unlock All by falzzz
+--// UI: Wind UI v2 by Footagesus
+
+--// Load Wind UI
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+
+--// Config
+local Config = {
+    ShootKey  = Enum.KeyCode.E,
+    TweenTime = 0.001,
+}
+
+--// Services
+local Players           = game:GetService("Players")
+local UserInputService  = game:GetService("UserInputService")
+local RunService        = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player            = Players.LocalPlayer
+local gui               = player.PlayerGui
+
+--// Guard Remote
+local GuardRemote = ReplicatedStorage.Packages.Knit.Services.ControlService.RE.Guard
+
+--// ================================
+--// PERFECT SHOT LOGIC
+--// ================================
+local bar = gui.Visual.Shooting.Bar
+local btn = gui.Main.Mobile.Holder.Shoot
+local smartContestEnabled = false
+local contestMeter = gui.Visual.ShotInfo.Contest.Meter
+
+
+local shotEnabled  = true
+local ShotAccuracy = 1.0
+
+local autoMixEnabled    = false
+local mixCurrentMode    = "great"
+local mixGreatCount     = 0
+local mixPerfectCount   = 0
+local mixGreatsNeeded   = math.random(4, 5)
+local mixPerfectsNeeded = math.random(1, 2)
+
+local function getSmartAccuracy()
+    local text = contestMeter.Text
+    local percent = text:match("(%d+)%%")
+    if percent then
+        percent = tonumber(percent)
+        if percent <= 35 then
+            return 0.95
+        else
+            return 1.0
+        end
+    end
+    if text == "WIDE OPEN" or text == "COVERED" then
+        return 0.95
+    else
+        return 1.0
+    end
+end
+
+
+local function getAutoMixAccuracy()
+    local accuracy
+    if mixCurrentMode == "great" then
+        accuracy = 0.95
+        mixGreatCount += 1
+        if mixGreatCount >= mixGreatsNeeded then
+            mixCurrentMode  = "perfect"
+            mixGreatCount   = 0
+            mixGreatsNeeded = math.random(4, 5)
+        end
+    else
+        accuracy = 1.0
+        mixPerfectCount += 1
+        if mixPerfectCount >= mixPerfectsNeeded then
+            mixCurrentMode    = "great"
+            mixPerfectCount   = 0
+            mixPerfectsNeeded = math.random(1, 2)
+        end
+    end
+    return accuracy
+end
+
+local function shoot()
+    if not shotEnabled then return end
+    local char = player.Character
+    if char and char:FindFirstChild("Basketball") then
+        local accuracy
+        if smartContestEnabled then
+            accuracy = getSmartAccuracy()
+        else
+            accuracy = autoMixEnabled and getAutoMixAccuracy() or ShotAccuracy
+        end
+        bar:TweenSize(UDim2.fromScale(1, accuracy), Enum.EasingDirection.Out, Enum.EasingStyle.Linear, Config.TweenTime, true)
+        bar.Size = UDim2.fromScale(1, accuracy)
+    end
+end
+
+
+for _, e in ipairs({"MouseButton1Click", "MouseButton1Down", "Activated"}) do
+    btn[e]:Connect(shoot)
+end
+
+UserInputService.InputBegan:Connect(function(i, g)
+    if not g and i.KeyCode == Config.ShootKey then shoot() end
+end)
+
+--// ================================
+--// STEAL REACH LOGIC
+--// ================================
+local stealReachEnabled    = false
+local stealReachMultiplier = 1.5
+local originalRightArmSize, originalLeftArmSize
+
+local function updateHitboxSizes()
+    local char = player.Character
+    if not char then return end
+    local rightArm = char:FindFirstChild("Right Arm") or char:FindFirstChild("RightHand") or char:FindFirstChild("RightLowerArm") or char:FindFirstChild("RightUpperArm")
+
+    local leftArm = char:FindFirstChild("Left Arm") or char:FindFirstChild("LeftHand") or char:FindFirstChild("LeftLowerArm") or char:FindFirstChild("LeftUpperArm")
+
+    if stealReachEnabled then
+        if rightArm then
+            if not originalRightArmSize then originalRightArmSize = rightArm.Size end
+            rightArm.Size = originalRightArmSize * stealReachMultiplier
+            rightArm.Transparency = 1; rightArm.CanCollide = false; rightArm.Massless = true
+        end
+        if leftArm then
+            if not originalLeftArmSize then originalLeftArmSize = leftArm.Size end
+            leftArm.Size = originalLeftArmSize * stealReachMultiplier
+            leftArm.Transparency = 1; leftArm.CanCollide = false; leftArm.Massless = true
+        end
+    else
+        if rightArm and originalRightArmSize then
+            rightArm.Size = originalRightArmSize
+            rightArm.Transparency = 0; rightArm.CanCollide = false; rightArm.Massless = false
+            originalRightArmSize = nil
+        end
+        if leftArm and originalLeftArmSize then
+            leftArm.Size = originalLeftArmSize
+            leftArm.Transparency = 0; leftArm.CanCollide = false; leftArm.Massless = false
+            originalLeftArmSize = nil
+        end
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if stealReachEnabled then updateHitboxSizes() end
+end)
+
+player.CharacterAdded:Connect(function()
+    originalRightArmSize = nil
+    originalLeftArmSize  = nil
+    task.wait(1)
+    if stealReachEnabled then updateHitboxSizes() end
+end)
+
+--// ================================
+--// ANTI STEAL LOGIC
+--// ================================
+local antiStealEnabled = false
+
+local function startAntiSteal()
+    local actor = player.PlayerScripts:FindFirstChildOfClass("Actor")
+    if not actor then return end
+    run_on_actor(actor, [[
+        local RS = game:GetService("ReplicatedStorage")
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local RunService = game:GetService("RunService")
+        require(RS.Packages.Knit)
+        local StartDribble = RS.Packages.Knit.Services.ControlService.RE.StartDribble
+
+        local function muteWorkspaceBallStart()
+            for _, v in ipairs(workspace:GetChildren()) do
+                if v.Name == "Basketball" and v:IsA("BasePart") then
+                    for _, s in ipairs(v:GetChildren()) do
+                        if s:IsA("Sound") and s.Name == "Start" then s.Volume = 0 end
+                    end
+                    v.ChildAdded:Connect(function(s)
+                        if s:IsA("Sound") and s.Name == "Start" then
+                            task.wait()
+                            s.Volume = 0
+                        end
+                    end)
+                end
+            end
+        end
+
+        workspace.ChildAdded:Connect(function(v)
+            if v.Name == "Basketball" and v:IsA("BasePart") then
+                task.wait(0.05)
+                muteWorkspaceBallStart()
+            end
+        end)
+        muteWorkspaceBallStart()
+
+        local function hasBall()
+            local char = LocalPlayer.Character
+            return char and char:FindFirstChild("Basketball") and char.Basketball:IsA("Tool")
+        end
+
+        local directions = {"Left","Right","Forward","Back"}
+        local dirIndex = 1
+        local lastFire = 0
+        local INTERVAL = 0.05
+        _G.antiStealActive = true
+
+        RunService.Heartbeat:Connect(function()
+            if not _G.antiStealActive then return end
+            if not hasBall() then return end
+            local now = tick()
+            if (now - lastFire) < INTERVAL then return end
+            lastFire = now
+            local dir = directions[dirIndex]
+            dirIndex = dirIndex % #directions + 1
+            pcall(function() StartDribble:FireServer(dir) end)
+        end)
+    ]])
+end
+
+--// ================================
+--// BALL MAGNET LOGIC
+--// ================================
+local MagsDist      = 20
+local magnetEnabled = false
+local magnetSphere = nil
+local sphereColor = Color3.fromHex("#00D4FF")
+local sphereTransparency = 0.5
+
+local function updateSphere()
+    if not magnetSphere then return end
+    
+    -- Check if any player is holding the ball via Attach part
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr.Character then
+            local ball = plr.Character:FindFirstChild("Basketball")
+            if ball and ball:IsA("Tool") then
+                local attach = ball:FindFirstChild("Attach")
+                if attach then
+                    magnetSphere.CFrame = attach.CFrame
+                    magnetSphere.Size = Vector3.new((MagsDist - 5) * 2, (MagsDist - 5) * 2, (MagsDist - 5) * 2)
+                    return
+                end
+            end
+        end
+    end
+    
+    -- No one holding ball, check workspace for loose ball
+    for _, v in ipairs(workspace:GetChildren()) do
+        if v:IsA("BasePart") and v.Name == "Basketball" then
+            magnetSphere.CFrame = v.CFrame
+            magnetSphere.Size = Vector3.new((MagsDist - 5) * 2, (MagsDist - 5) * 2, (MagsDist - 5) * 2)
+            return
+        end
+    end
+end
+
+
+
+
+
+
+
+local function createSphere()
+    if magnetSphere then magnetSphere:Destroy() end
+    magnetSphere = Instance.new("Part")
+    magnetSphere.Name = "MagnetVisual"
+    magnetSphere.Shape = Enum.PartType.Ball
+    magnetSphere.Material = Enum.Material.Neon
+    magnetSphere.Size = Vector3.new((MagsDist - 5) * 2, (MagsDist - 5) * 2, (MagsDist - 5) * 2)
+
+    magnetSphere.Color = sphereColor
+    magnetSphere.Transparency = sphereTransparency
+    magnetSphere.CanCollide = false
+    magnetSphere.Anchored = true
+    magnetSphere.Massless = true
+    magnetSphere.CastShadow = false
+    magnetSphere.Parent = workspace
+end
+
+
+
+local function destroySphere()
+    if magnetSphere then
+        magnetSphere:Destroy()
+        magnetSphere = nil
+    end
+end
+
+local magnetVisualEnabled = false
+
+RunService.Heartbeat:Connect(function()
+    if magnetVisualEnabled then updateSphere() end
+    if not magnetEnabled then return end
+
+    local char = player.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    for _, v in ipairs(workspace:GetChildren()) do
+        if v:IsA("BasePart") and v.Name == "Basketball" then
+            if (hrp.Position - v.Position).Magnitude <= MagsDist then
+                local touch = v:FindFirstChildOfClass("TouchTransmitter")
+                if touch then
+    autoGuardPaused = true
+    for i = 1, 3 do
+    firetouchinterest(hrp, v, 0)
+    firetouchinterest(hrp, v, 1)
+end
+
+    task.delay(1.5, function()
+        autoGuardPaused = false
+    end)
+end
+
+            end
+        end
+    end
+end)
+
+--// ================================
+--// AUTO GUARD LOGIC
+--// ================================
+local autoGuardEnabled    = false
+local autoGuardConnection = nil
+local lastPositions       = {}
+local predictionTime      = 0.3
+local guardDistance       = 10
+local autoGuardPaused     = false
+
+local stealBtn = gui.Main.Mobile.Holder.Steal
+stealBtn.Activated:Connect(function()
+    autoGuardPaused = true
+    GuardRemote:FireServer(false)
+    task.wait(1.5)
+    autoGuardPaused = false
+end)
+
+local function getPlayerFromModel(model)
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr.Character == model then return plr end
+    end
+end
+
+local function isOnDifferentTeam(otherModel)
+    local otherPlayer = getPlayerFromModel(otherModel)
+    if not otherPlayer then return false end
+    if not player.Team or not otherPlayer.Team then return otherPlayer ~= player end
+    return player.Team ~= otherPlayer.Team
+end
+
+local function findPlayerWithBall()
+    local looseBall = workspace:FindFirstChild("Basketball")
+    if looseBall and looseBall:IsA("BasePart") then
+        local closestPlayer, closestDistance = nil, math.huge
+        for _, model in pairs(workspace:GetChildren()) do
+            if model:IsA("Model") and model:FindFirstChild("HumanoidRootPart") and model ~= player.Character then
+                if isOnDifferentTeam(model) then
+                    local dist = (looseBall.Position - model.HumanoidRootPart.Position).Magnitude
+                    if dist < closestDistance and dist < 15 then
+                        closestDistance = dist
+                        closestPlayer   = model
+                    end
+                end
+            end
+        end
+        if closestPlayer then return closestPlayer, closestPlayer.HumanoidRootPart end
+    end
+    for _, model in pairs(workspace:GetChildren()) do
+        if model:IsA("Model") and model:FindFirstChild("HumanoidRootPart") and model ~= player.Character then
+            if isOnDifferentTeam(model) then
+                local basketball = model:FindFirstChild("Basketball")
+                if basketball and basketball:IsA("Tool") then
+                    return model, model.HumanoidRootPart
+                end
+            end
+        end
+    end
+    return nil, nil
+end
+
+local function autoGuard()
+    if not autoGuardEnabled then return end
+    if autoGuardPaused then return end
+    if player.Character and player.Character:FindFirstChild("Basketball") then return end
+    local character = player.Character
+    if not character then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not rootPart then return end
+    local ballCarrier, ballCarrierRoot = findPlayerWithBall()
+    if ballCarrier and ballCarrierRoot then
+        local distance   = (rootPart.Position - ballCarrierRoot.Position).Magnitude
+        local currentPos = ballCarrierRoot.Position
+        local velocity   = Vector3.zero
+        if lastPositions[ballCarrier] then
+            velocity = (currentPos - lastPositions[ballCarrier]) / 0.1
+        end
+        lastPositions[ballCarrier] = currentPos
+        local predictedPos = currentPos + velocity * predictionTime
+        local dir          = (predictedPos - rootPart.Position).Unit
+        local defensivePos = predictedPos - dir * 5
+        defensivePos = Vector3.new(defensivePos.X, rootPart.Position.Y, defensivePos.Z)
+        if distance <= guardDistance then
+            humanoid:MoveTo(defensivePos)
+            GuardRemote:FireServer(true)
+        else
+            GuardRemote:FireServer(false)
+        end
+    else
+        GuardRemote:FireServer(false)
+    end
+end
+
+
+--// ================================
+--// POST AIMBOT LOGIC
+--// ================================
+local postAimbotEnabled      = false
+local postUpdateInterval     = 0.033
+local lastPostUpdate         = 0
+local postActivationDistance = 10
+
+local function playerHasBall()
+    local char = player.Character
+    if not char then return false end
+    local t = char:FindFirstChild("Basketball")
+    return t and t:IsA("Tool")
+end
+
+local function detectBallHand()
+    local char = player.Character
+    if not char then return "right" end
+    local tool = char:FindFirstChild("Basketball")
+    if tool and tool:IsA("Tool") then
+        local handle   = tool:FindFirstChild("Handle")
+        local charRoot = char:FindFirstChild("HumanoidRootPart")
+        if handle and charRoot then
+            return charRoot.CFrame:ToObjectSpace(handle.CFrame).X > 0 and "right" or "left"
+        end
+    end
+    return "right"
+end
+
+local function getClosestOpponent()
+    local char = player.Character
+    if not char then return nil end
+    local myRoot = char:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return nil end
+    local closest, minDist = nil, postActivationDistance
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            if isOnDifferentTeam(plr.Character) then
+                local dist = (plr.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
+                if dist < minDist then
+                    closest = plr.Character.HumanoidRootPart
+                    minDist = dist
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService.Heartbeat:Connect(function()
+    if not postAimbotEnabled then return end
+    if not playerHasBall() then return end
+    local now = tick()
+    if (now - lastPostUpdate) < postUpdateInterval then return end
+    lastPostUpdate = now
+    local char   = player.Character
+    if not char then return end
+    local myRoot = char:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return end
+    local target = getClosestOpponent()
+    if target then
+        local dir        = (target.Position - myRoot.Position).Unit
+        local faceTarget = CFrame.new(myRoot.Position, myRoot.Position + dir)
+        local angle      = detectBallHand() == "left" and 90 or -90
+        myRoot.CFrame    = faceTarget * CFrame.Angles(0, math.rad(angle), 0)
+    end
+end)
+
+--// ================================
+--// UNLOCK ALL
+--// ================================
+
+if run_on_actor and getactors then
+    run_on_actor(getactors()[1], game:HttpGet("https://raw.githubusercontent.com/6ft8/basketballegendss/refs/heads/main/actor.lua"))
+    task.wait(3.5)
+    WindUI:Notify({
+        Title = "Unlock All",
+        Content = "All skins and effects have been unlocked!",
+        Icon = "solar:lock-keyhole-unlocked-bold",
+        Duration = 6,
+    })
+
+else
+    WindUI:Notify({
+        Title = "Unlock All",
+        Content = "Your executor is not compatible! Use Delta, Potassium, Volt, Volcano, Wave or Isaeva.",
+        Icon = "solar:shield-warning-bold",
+        Duration = 8,
+    })
+end
+
+
+
+--// ================================
+--// WIND UI
+--// ================================
+
+local Orange = Color3.fromHex("#FF7A30")
+local Green  = Color3.fromHex("#10C550")
+local Blue   = Color3.fromHex("#257AF7")
+local Purple = Color3.fromHex("#9B7FFF")
+local Red    = Color3.fromHex("#EF4F1D")
+local Yellow = Color3.fromHex("#ECA201")
+local Cyan   = Color3.fromHex("#00D4FF")
+
+local Window = WindUI:CreateWindow({
+    Title       = "falzzz hub",
+    Author      = "Basketball Legends",
+    NotifyPosition = "BottomRight",
+    Folder      = "falzzzhub",
+    Icon        = "solar:basketball-bold-duotone",
+    Accent      = Orange,
+    Theme       = "Dark",
+    Acrylic     = true,
+    Transparent = true,
+    NewElements = true,
+    ToggleKey   = Enum.KeyCode.RightShift,
+    HideSearchBar = false,
+    OpenButton = {
+        Title           = "falzzz hub",
+        CornerRadius    = UDim.new(1, 0),
+        StrokeThickness = 2,
+        Enabled         = true,
+        Draggable       = true,
+        OnlyMobile      = false,
+        Scale           = 0.5,
+        Color           = ColorSequence.new(
+            Color3.fromHex("#FF7A30"),
+            Color3.fromHex("#FF3060")
+        ),
+    },
+    Topbar = {
+        Height      = 44,
+        ButtonsType = "Default",
+    },
+})
+
+Window:Tag({
+    Title  = "by falzzz",
+    Icon   = "solar:star-bold",
+    Color  = Color3.fromHex("#FF7A30"),
+    Border = true,
+})
+
+-- ============================================================
+-- INFO TAB
+-- ============================================================
+local CreditsTab = Window:Tab({
+    Title = "Info",
+    Icon  = "solar:info-square-bold",
+})
+
+CreditsTab:Section({
+    Title      = "falzzz hub",
+    TextSize   = 22,
+    FontWeight = Enum.FontWeight.Bold,
+})
+
+CreditsTab:Image({
+    Image = "rbxassetid://6894234696",
+    AspectRatio = "16:9",
+    Radius = 9,
+})
+
+CreditsTab:Space()
+CreditsTab:Section({
+    Title            = "A Basketball Legends cheat hub by falzzz.\nIncludes perfect shot, auto mix, steal reach, anti steal, ball magnet, auto guard, post aimbot, and unlock all.",
+    TextSize         = 15,
+    TextTransparency = 0.3,
+    FontWeight       = Enum.FontWeight.Medium,
+})
+CreditsTab:Space({ Columns = 3 })
+
+CreditsTab:Section({ Title = "Credits", TextSize = 18, FontWeight = Enum.FontWeight.SemiBold })
+CreditsTab:Space()
+CreditsTab:Section({
+    Title            = "• Perfect Shot — falzzz\n• Steal Reach & Ball Magnet — falzzz & team\n• Unlock All — falzzz\n• UI — Wind UI by Footagesus",
+    TextSize         = 14,
+    TextTransparency = 0.35,
+})
+CreditsTab:Space({ Columns = 3 })
+
+CreditsTab:Section({ Title = "Compatible Executors", TextSize = 18, FontWeight = Enum.FontWeight.SemiBold })
+CreditsTab:Space()
+CreditsTab:Section({
+    Title            = "Delta  •  Potassium  •  Volt  •  Volcano  •  Wave  •  Isaeva  •  Xeno  •  Solara  •  Vega X  •  Hydrogen  •  Macsploit",
+    TextSize         = 14,
+    TextTransparency = 0.35,
+})
+CreditsTab:Space({ Columns = 4 })
+
+local DestroyGroup = CreditsTab:Group({})
+DestroyGroup:Button({
+    Title     = "Destroy Hub",
+    Icon      = "solar:trash-bin-trash-bold",
+    Color     = Red,
+    Justify   = "Center",
+    IconAlign = "Left",
+    Size      = "Small",
+    Callback  = function()
+        Window:Destroy()
+    end,
+})
+
+-- ============================================================
+-- CHANGELOG TAB
+-- ============================================================
+local ChangelogTab = Window:Tab({
+    Title = "Changelog",
+    Icon = "solar:history-bold",
+
+})
+
+ChangelogTab:Section({
+    Title      = "Latest Version",
+    TextSize   = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+ChangelogTab:Space()
+
+local LatestVersion = ChangelogTab:Section({
+    Title      = "v1.0.0  •  Initial Release",
+    TextSize   = 16,
+    FontWeight = Enum.FontWeight.Bold,
+    Box        = true,
+    BoxBorder  = true,
+    Opened     = true,
+})
+
+LatestVersion:Section({
+    Title            = "🟠  New Features",
+    TextSize         = 14,
+    FontWeight       = Enum.FontWeight.SemiBold,
+})
+LatestVersion:Section({
+    Title            = "• Perfect Shot — Perfect, Great & Auto Mix modes",
+    TextSize         = 15,
+    TextTransparency = 0.35,
+})
+LatestVersion:Section({
+    Title            = "• Ball Magnet — pulls the ball towards you",
+    TextSize         = 15,
+    TextTransparency = 0.35,
+})
+LatestVersion:Section({
+    Title            = "• Steal Reach — expands steal reach hitboxes",
+    TextSize         = 15,
+    TextTransparency = 0.35,
+})
+LatestVersion:Section({
+    Title            = "• Anti Steal — Automatically ankle breaks any defender trying to steal the ball from you.",
+    TextSize         = 15,
+    TextTransparency = 0.35,
+})
+LatestVersion:Section({
+    Title            = "• Auto Guard — tracks & guards ball carrier",
+    TextSize         = 15,
+    TextTransparency = 0.35,
+})
+LatestVersion:Section({
+    Title            = "• Post Aimbot — auto posts against nearest opponents accordingly.",
+    TextSize         = 15,
+    TextTransparency = 0.35,
+})
+LatestVersion:Section({
+    Title            = "• Unlock All — unlocks all skins & effects",
+    TextSize         = 15,
+    TextTransparency = 0.35,
+})
+LatestVersion:Section({
+    Title            = "• Bug Report — submit issues and bugs directly to me",
+    TextSize         = 15,
+    TextTransparency = 0.35,
+})
+
+
+ChangelogTab:Space({ Columns = 3 })
+
+ChangelogTab:Section({
+    Title      = "Previous Versions",
+    TextSize   = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+ChangelogTab:Space()
+
+ChangelogTab:Dropdown({
+    Title  = "Select Version",
+    Desc   = "View changes from older versions",
+    Values = { "No previous versions yet" },
+    Value  = "No previous versions yet",
+    Callback = function() end,
+})
+
+
+
+-- ============================================================
+--  PERFECT SHOT TAB
+-- ============================================================
+local ShotTab = Window:Tab({
+    Title = "Shot",
+    Icon  = "solar:target-bold",
+})
+
+ShotTab:Select()
+
+ShotTab:Section({ Title = "Shot Mode" })
+
+ShotTab:Dropdown({
+    Flag   = "ShotMode",
+    Title  = "Shot Mode",
+    Desc   = [[
+• Perfect is 100% accuracy.
+• Great is 95% accuracy.
+• Auto Mix alternates between Great & Perfect.
+• Off disables shot assist.
+]],
+    Values = { "Perfect", "Great", "Auto Mix", "Off" },
+    Value  = "Perfect",
+    Callback = function(option)
+        if option == "Perfect" then
+            shotEnabled = true; autoMixEnabled = false; ShotAccuracy = 1.0
+        elseif option == "Great" then
+            shotEnabled = true; autoMixEnabled = false; ShotAccuracy = 0.95
+        elseif option == "Auto Mix" then
+            shotEnabled = true; autoMixEnabled = true
+            mixCurrentMode = "great"; mixGreatCount = 0; mixPerfectCount = 0
+            mixGreatsNeeded = math.random(4,5); mixPerfectsNeeded = math.random(1,2)
+        elseif option == "Off" then
+            shotEnabled = false; autoMixEnabled = false
+        end
+        WindUI:Notify({
+            Title    = "Shot Mode",
+            Content  = "Set to " .. option,
+            Icon     = "solar:target-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+ShotTab:Space()
+ShotTab:Section({ Title = "Smart Contest" })
+ShotTab:Toggle({
+    Flag = "SmartContest",
+    Title = "Smart Contest",
+    Desc = [[
+• Wide Open / 0-35% → Great shot
+• Covered 36%+ → Perfect shot
+• Auto adjusts based on coverage
+]],
+    Value = false,
+    Callback = function(value)
+        smartContestEnabled = value
+        if value then
+            shotEnabled = true
+            autoMixEnabled = false
+        end
+        WindUI:Notify({
+            Title = "Smart Contest",
+            Content = value and "Smart Contest enabled!" or "Smart Contest disabled!",
+            Icon = "solar:target-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+
+ShotTab:Space()
+ShotTab:Section({ Title = "Keybind" })
+
+ShotTab:Keybind({
+    Flag  = "ShootKeybind",
+    Title = "Shot Key",
+    Desc  = "Press this key to trigger a shot at your selected accuracy",
+    Value = "E",
+    Callback = function(keybind)
+        Config.ShootKey = Enum.KeyCode[keybind]
+        WindUI:Notify({
+            Title    = "Keybind Updated",
+            Content  = "Shot key set to " .. keybind,
+            Icon     = "solar:keyboard-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+-- ============================================================
+--  BALL MAGNET TAB
+-- ============================================================
+local MagnetTab = Window:Tab({
+    Title = "Magnet",
+    Icon  = "solar:magnet-bold",
+})
+
+MagnetTab:Section({ Title = "Ball Magnet" })
+MagnetTab:Toggle({
+    Flag = "MagnetEnabled",
+    Title = "Ball Magnet",
+    Desc = "Forces ball contact within a customizable radius",
+    Value = false,
+    Callback = function(value)
+        magnetEnabled = value
+        WindUI:Notify({ Title = "Ball Magnet", Content = value and "Ball Magnet enabled!" or "Ball Magnet disabled!", Icon = "solar:magnet-bold", Duration = 2 })
+    end,
+})
+MagnetTab:Space()
+MagnetTab:Slider({
+    Flag = "MagnetRange",
+    Title = "Detection Distance (Range)",
+    Desc = [[
+• Sets magnet range.
+• Higher = more blatant.
+• Lower = more legit.
+]],
+    Step = 5,
+    IsTooltip = true,
+    IsTextbox = false,
+    Value = { Min = 5, Max = 30, Default = 20 },
+    Icons = { To = "solar:magnet-bold" },
+    Callback = function(value)
+    MagsDist = value
+    if magnetSphere then
+        magnetSphere.Size = Vector3.new((MagsDist - 5) * 2, (MagsDist - 5) * 2, (MagsDist - 5) * 2)
+
+    end
+end,
+
+})
+
+MagnetTab:Space()
+MagnetTab:Section({ Title = "Visual Indicator" })
+
+MagnetTab:Toggle({
+    Flag = "MagnetVisual",
+    Title = "Show Range Indicator",
+    Desc = "Displays a ForceField sphere showing your magnet pickup range",
+    Value = false,
+    Callback = function(value)
+        magnetVisualEnabled = value
+        if value then
+            createSphere()
+        else
+            destroySphere()
+        end
+        WindUI:Notify({
+            Title = "Magnet Visual",
+            Content = value and "Range indicator enabled!" or "Range indicator disabled!",
+            Icon = "solar:magnet-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+MagnetTab:Space()
+
+MagnetTab:Slider({
+    Flag = "SphereTransparency",
+    Title = "Indicator Transparency",
+    Step = 1,
+    IsTooltip = true,
+    IsTextbox = false,
+    Value = { Min = 0, Max = 9, Default = 9 },
+    Icons = { To = "solar:eye-bold" },
+    Callback = function(value)
+    sphereTransparency = value / 10
+    if magnetSphere then
+        magnetSphere.Transparency = sphereTransparency
+    end
+end,
+
+
+})
+
+MagnetTab:Space()
+
+MagnetTab:Colorpicker({
+    Flag = "SphereColor",
+    Title = "Indicator Color",
+    Desc = "Change the color of the range indicator sphere",
+    Default = Color3.fromHex("#00D4FF"),
+    Callback = function(color)
+        sphereColor = color
+        if magnetSphere then
+    magnetSphere.Color = color
+end
+
+
+    end,
+})
+
+
+
+-- ============================================================
+--  POST AIMBOT TAB
+-- ============================================================
+local PostTab = Window:Tab({
+    Title = "Post",
+    Icon = "solar:target-bold",
+
+})
+
+PostTab:Section({ Title = "Post Aimbot" })
+PostTab:Toggle({
+    Flag = "PostAimbot",
+    Title = "Post Aimbot",
+    Desc = "Auto-posts nearest opponent when you have the ball",
+    Value = false,
+    Callback = function(value)
+        postAimbotEnabled = value
+        WindUI:Notify({ Title = "Post Aimbot", Content = value and "Post Aimbot enabled!" or "Post Aimbot disabled!", Icon = "solar:crosshairs-bold", Duration = 2 })
+    end,
+})
+PostTab:Space()
+PostTab:Slider({
+    Flag = "JitterSpeed",
+    Title = "Jitter Speed",
+    Desc = [[
+• Controls update speed.
+• Higher = smoother aim.
+• Lower = more subtle.
+]],
+    Step = 1,
+    IsTooltip = true,
+    IsTextbox = false,
+    Value = { Min = 1, Max = 20, Default = 3 },
+    Icons = { To = "sfsymbols:hare" },
+    Callback = function(value) postUpdateInterval = value / 100 end,
+})
+PostTab:Space()
+PostTab:Slider({
+    Flag = "PostDistance",
+    Title = "Detection Distance (Range)",
+    Desc = [[
+• Sets activation range.
+• Only targets nearby players.
+• Lower = less tracking.
+]],
+    Step = 1,
+    IsTooltip = true,
+    IsTextbox = false,
+    Value = { Min = 5, Max = 30, Default = 10 },
+    Icons = { To = "sfsymbols:personCropCircleBadgeMinus" },
+    Callback = function(value) postActivationDistance = value end,
+})
+
+
+-- ============================================================
+--  STEAL TAB
+-- ============================================================
+local StealTab = Window:Tab({
+    Title = "Steal",
+    Icon  = "solar:hand-stars-bold",
+})
+
+StealTab:Section({ Title = "Steal Reach" })
+StealTab:Toggle({
+    Flag = "StealEnabled",
+    Title = "Steal Reach",
+    Desc = [[
+• Extends your steal hitbox range.
+• Allows steals from farther distances.
+• Increases overall defensive coverage.
+]],
+    Value = false,
+    Callback = function(value)
+        stealReachEnabled = value
+        updateHitboxSizes()
+        WindUI:Notify({ Title = "Steal Reach", Content = value and "Steal Reach enabled!" or "Steal Reach disabled!", Icon = "solar:hand-stars-bold", Duration = 2 })
+    end,
+})
+StealTab:Space()
+StealTab:Slider({
+    Flag = "ReachMultiplier",
+    Title = "Multiplier",
+    Desc = [[
+• Adjusts reach size.
+• Higher = longer reach.
+• Lower = more legit.
+]],
+    Step = 0.5,
+    IsTooltip = true,
+    IsTextbox = false,
+    Value = { Min = 1, Max = 20, Default = 1.5 },
+    Icons = { To = "sfsymbols:arrowLeftAndRightSquare" },
+    Callback = function(value)
+        stealReachMultiplier = value
+        if stealReachEnabled then updateHitboxSizes() end
+    end,
+})
+
+
+StealTab:Space()
+StealTab:Section({ Title = "Anti Steal" })
+
+StealTab:Toggle({
+    Flag  = "AntiStealEnabled",
+    Title = "Anti Steal",
+    Desc  = [[Forces ankle break 
+on players who attempt to steal. (Blatant)]],
+    Value = false,
+    Callback = function(value)
+        antiStealEnabled = value
+        if value then
+            _G.antiStealActive = true
+            startAntiSteal()
+        else
+            _G.antiStealActive = false
+        end
+        WindUI:Notify({
+            Title    = "Anti Steal",
+            Content  = value and "Anti Steal on! Get anklebroken." or "Anti Steal disabled!",
+            Icon     = "solar:shield-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+-- ============================================================
+--  AUTO GUARD TAB
+-- ============================================================
+local GuardTab = Window:Tab({
+    Title = "Guard",
+    Icon  = "solar:shield-user-bold",
+})
+
+GuardTab:Section({ Title = "Auto Guard" })
+GuardTab:Toggle({
+    Flag = "AutoGuard",
+    Title = "Auto Guard",
+    Desc = [[
+• Tracks the opponent with the ball.
+• Positions you in front of them automatically.
+• Helps maintain consistent defense.
+]],
+    Value = false,
+    Callback = function(value)
+        autoGuardEnabled = value
+        if value then
+            lastPositions = {}
+            if not autoGuardConnection then
+                autoGuardConnection = RunService.Heartbeat:Connect(autoGuard)
+            end
+        else
+            if autoGuardConnection then
+                autoGuardConnection:Disconnect()
+                autoGuardConnection = nil
+            end
+            lastPositions = {}
+            GuardRemote:FireServer(false)
+        end
+        WindUI:Notify({ Title = "Auto Guard", Content = value and "Auto Guard enabled!" or "Auto Guard disabled!", Icon = "solar:shield-user-bold", Duration = 2 })
+    end,
+})
+GuardTab:Space()
+GuardTab:Slider({
+    Flag = "GuardDistance",
+    Title = "Detection Distance (Range)",
+    Desc = [[
+• Distance from target.
+• Lower = tighter defense.
+• Higher = more space.
+]],
+    Step = 1,
+    IsTooltip = true, 
+    IsTextbox = false,
+    Value = { Min = 5, Max = 20, Default = 10 },
+    Icons = { To = "sfsymbols:personCropCircleBadgePlus" },
+    Callback = function(value) guardDistance = value end,
+})
+GuardTab:Space()
+GuardTab:Slider({
+    Flag = "PredictionTime",
+    Title = "Prediction",
+    Desc = [[
+• Predicts movement.
+• Higher = more ahead.
+• Lower = more reactive.
+]],
+    Step = 1,
+    IsTooltip = true,
+    IsTextbox = false,
+    Value = { Min = 1, Max = 8, Default = 3 },
+    Icons = { To = "solar:double-alt-arrow-right-bold" },
+    Callback = function(value) predictionTime = value / 10 end,
+})
+
+
+-- ============================================================
+--  UNLOCK ALL TAB
+-- ============================================================
+local UnlockTab = Window:Tab({
+    Title = "Cosmetics",
+    Icon  = "solar:lock-keyhole-unlocked-bold",
+})
+
+UnlockTab:Section({ Title = "Unlock All" })
+UnlockTab:Section({
+    Title            = "All skins and effects are already unlocked!!! Open your inventory in-game to equip them.",
+    TextSize         = 18,
+    TextTransparency = 0.3,
+    FontWeight       = Enum.FontWeight.Medium,
+})
+UnlockTab:Space()
+UnlockTab:Section({
+    Title            = "Compatible Executors: Delta  •  Potassium  •  Volt  •  Volcano  •  Wave  •  Isaeva",
+    TextSize         = 18,
+    TextTransparency = 0.45,
+})
+
+
+-- ============================================================
+-- BUG REPORT TAB
+-- ============================================================
+local BugTab = Window:Tab({
+    Title = "Support",
+    Icon = "solar:bug-bold",
+})
+
+BugTab:Section({ Title = "Contact" })
+BugTab:Section({
+    Title = "You can report bugs or issues directly to me (falzzz) via Discord.",
+    TextSize = 16,
+    TextTransparency = 0.3,
+    FontWeight = Enum.FontWeight.Medium,
+})
+BugTab:Space()
+BugTab:Section({ Title = "Discord", TextSize = 16, FontWeight = Enum.FontWeight.SemiBold })
+BugTab:Section({
+    Title = "Display Name: Falzzz\nUsername: eh#3758",
+    TextSize = 16,
+    TextTransparency = 0.3,
+})
+
+BugTab:Space()
+BugTab:Button({
+    Title = "Copy Discord Username",
+    Icon = "solar:copy-bold",
+    Justify = "Center",
+    IconAlign = "Left",
+    Callback = function()
+        setclipboard("eh#3758")
+        WindUI:Notify({
+            Title = "Copied!",
+            Content = "eh#3758 has been copied to your clipboard.",
+            Icon = "solar:copy-bold",
+            Duration = 3,
+        })
+    end,
+})
+
+BugTab:Space({ Columns = 3 })
+BugTab:Section({ Title = "Submit a Bug Report", TextSize = 16, FontWeight = Enum.FontWeight.SemiBold })
+BugTab:Section({
+    Title = "Please be as specific as possible. Include what feature broke, what you were doing, and your executor name.",
+    TextSize = 16,
+    TextTransparency = 0.35,
+})
+BugTab:Space()
+
+local bugReportText = ""
+local BugInput = BugTab:Input({
+    Title = "Bug Report",
+    Type = "Textarea",
+    Placeholder = "e.g. Ball Magnet stopped working after enabling Steal Reach on Delta executor because...",
+    Callback = function(value)
+        bugReportText = value
+    end
+})
+
+BugTab:Space()
+
+BugTab:Button({
+    Title = "Submit Report",
+    Icon = "solar:plain-2-bold",
+    Color = Color3.fromHex("#FF7A30"),
+    Justify = "Center",
+    IconAlign = "Left",
+    Callback = function()
+        if bugReportText == "" then
+            WindUI:Notify({
+                Title = "Empty Report",
+                Content = "Please describe the issue before submitting.",
+                Icon = "solar:bug-bold",
+                Duration = 3,
+            })
+            return
+        end
+
+        local executor = identifyexecutor and identifyexecutor() or "Unknown"
+        local HttpService = game:GetService("HttpService")
+        local webhookUrl = "https://discord.com/api/webhooks/1488430889024094230/fxQX1QYj_1UVLwI5HxXrvfc6lAy__sQJHr0Z567CsZdAEsBL5Y5wEYpTmGBEbMhFakDo"
+
+        local data = HttpService:JSONEncode({
+            username = "falzzz hub | Bug Report",
+            content = "**New Bug Report**\n**From:** " .. player.Name .. "\n**Executor:** " .. executor .. "\n**Game:** Basketball Legends\n**Report:**\n" .. bugReportText
+
+        })
+
+        pcall(function()
+            request({
+                Url = webhookUrl,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = data,
+            })
+        end)
+
+        WindUI:Notify({
+            Title = "Report Submitted!",
+            Content = "Thanks for the report. We'll look into it!",
+            Icon = "solar:check-circle-bold",
+            Duration = 4,
+        })
+
+        bugReportText = ""
+        BugInput:Set("")
+    end,
+})
+
+
+-- ============================================================
+--  SETTINGS TAB
+-- ============================================================
+local SettingsTab = Window:Tab({
+    Title = "Settings",
+    Icon  = "solar:settings-bold",
+})
+
+SettingsTab:Section({
+    Title = "Theme",
+    Desc  = "Customize the look of the hub",
+})
+
+local availableThemes = {}
+for name, _ in pairs(WindUI.Themes) do
+    table.insert(availableThemes, name)
+end
+table.sort(availableThemes)
+
+SettingsTab:Dropdown({
+    Title  = "UI Theme",
+    Desc   = "Switch between Wind UI built-in themes",
+    Values = availableThemes,
+    Value  = "Dark",
+    Callback = function(value)
+        WindUI:SetTheme(value)
+        WindUI:Notify({
+            Title    = "Theme Changed",
+            Content  = "Now using " .. value,
+            Icon     = "solar:palette-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+SettingsTab:Space()
+
+SettingsTab:Toggle({
+    Title = "Transparent Background",
+    Desc  = "Toggle the acrylic/transparent panel effect",
+    Value = true,
+    Callback = function(v)
+        Window:ToggleTransparency(v)
+    end,
+})
+
+SettingsTab:Space()
+SettingsTab:Section({ Title = "Window" })
+
+SettingsTab:Keybind({
+    Flag  = "ToggleKey",
+    Title = "Toggle UI Key",
+    Desc  = "Keybind to show or hide the hub window",
+    Value = "RightShift",
+    Callback = function(keybind)
+        Window:SetToggleKey(Enum.KeyCode[keybind])
+        WindUI:Notify({
+            Title    = "Toggle Key Updated",
+            Content  = "UI toggle set to " .. keybind,
+            Icon     = "solar:keyboard-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+-- ============================================================
+--  STARTUP NOTIFY
+-- ============================================================
+WindUI:Notify({
+    Title    = "falzzz hub loaded!",
+    Content  = "Welcome, " .. player.Name .. ". Stay undetected.",
+    Icon     = "solar:basketball-bold-duotone",
+    Duration = 6,
+})
