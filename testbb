@@ -1281,6 +1281,18 @@ SettingsTab:Toggle({
 })
 
 SettingsTab:Space()
+SettingsTab:Section({ Title = "Notifications" })
+SettingsTab:Toggle({
+    Title = "Enable Notifications",
+    Desc  = "Toggle all hub notifications on or off",
+    Value = true,
+    Callback = function(v)
+        WindUI:SetNotificationsEnabled(v)
+    end,
+})
+
+
+SettingsTab:Space()
 SettingsTab:Section({ Title = "Window" })
 
 SettingsTab:Keybind({
