@@ -172,19 +172,15 @@ end
 local oldEffect = visuals.Effect
 visuals.Effect = function(self, effect, ...)
     local args = {...}
-    if effect == "StartBallEffect" then
-        local hrp = args[3]
-        local liveChar = getCharacter()
-        -- Only intercept if the HRP belongs to our character
-        if hrp and liveChar and hrp:IsDescendantOf(liveChar) and currentEffect then
-            ourBallEffect = true
-            return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
-        else
-            -- Not our shot, pass through untouched
-            ourBallEffect = false
-            return oldEffect(self, effect, unpack(args))
+    if effect == "StartBallEffect" or effect == "BallEffect" then
+        print("=== Effect fired: " .. effect .. " ===")
+        for i, v in ipairs(args) do
+            print("  arg" .. i .. " = " .. tostring(v) .. " (" .. typeof(v) .. ")")
         end
     end
+    return oldEffect(self, effect, unpack(args))
+end
+
     if effect == "BallEffect" then
         if ourBallEffect and currentEffect then
             ourBallEffect = false
