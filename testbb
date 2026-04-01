@@ -760,10 +760,12 @@ ShotTab:Toggle({
     Flag = "SmartContest",
     Title = "Smart Contest",
     Desc = [[
-• Wide Open / 0-35% → Great shot
-• Covered 36%+ → Perfect shot
-• Auto adjusts based on coverage
+• Requires "Show Coverage %" ON in settings
+• 0-20% coverage → Great shot
+• 21%+ coverage → Perfect shot
+• Auto adjusts based on your contest
 ]],
+
     Value = false,
     Callback = function(value)
         smartContestEnabled = value
