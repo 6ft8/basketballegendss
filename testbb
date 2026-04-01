@@ -46,7 +46,7 @@ local function getSmartAccuracy()
     local percent = text:match("(%d+)%%")
     if percent then
         percent = tonumber(percent)
-        if percent <= 35 then
+        if percent <= 20 then
             return 0.95
         else
             return 1.0
