@@ -181,19 +181,6 @@ visuals.Effect = function(self, effect, ...)
     return oldEffect(self, effect, unpack(args))
 end
 
-    if effect == "BallEffect" then
-        if ourBallEffect and currentEffect then
-            ourBallEffect = false
-            return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
-        else
-            -- Not our ball effect, pass through untouched
-            return oldEffect(self, effect, unpack(args))
-        end
-    end
-    return oldEffect(self, effect, unpack(args))
-end
-
-
 local equipRE = RS.Packages.Knit.Services.EconomyService.RE.Equip
 local rmt = getrawmetatable(equipRE)
 local oldNC = rmt.__namecall
