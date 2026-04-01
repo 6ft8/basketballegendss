@@ -172,14 +172,30 @@ end
 local oldEffect = visuals.Effect
 visuals.Effect = function(self, effect, ...)
     local args = {...}
-    if effect == "StartBallEffect" or effect == "BallEffect" then
-        print("=== Effect fired: " .. effect .. " ===")
-        for i, v in ipairs(args) do
-            print("  arg" .. i .. " = " .. tostring(v) .. " (" .. typeof(v) .. ")")
+    if effect == "StartBallEffect" then
+        local hrp = args[3]
+        local liveChar = getCharacter()
+        local myHRP = liveChar and liveChar:FindFirstChild("HumanoidRootPart")
+        -- Only intercept if the HRP is exactly OUR HumanoidRootPart
+        if myHRP and hrp == myHRP and currentEffect then
+            ourBallEffect = true
+            return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
+        else
+            ourBallEffect = false
+            return oldEffect(self, effect, unpack(args))
+        end
+    end
+    if effect == "BallEffect" then
+        if ourBallEffect and currentEffect then
+            ourBallEffect = false
+            return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
+        else
+            return oldEffect(self, effect, unpack(args))
         end
     end
     return oldEffect(self, effect, unpack(args))
 end
+
 
 local equipRE = RS.Packages.Knit.Services.EconomyService.RE.Equip
 local rmt = getrawmetatable(equipRE)
