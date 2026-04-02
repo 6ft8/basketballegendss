@@ -34,11 +34,7 @@ local shotEnabled  = true
 local ShotAccuracy = 1.0
 
 local autoMixEnabled    = false
-local mixCurrentMode    = "great"
-local mixGreatCount     = 0
-local mixPerfectCount   = 0
-local mixGreatsNeeded   = math.random(4, 5)
-local mixPerfectsNeeded = math.random(1, 2)
+
 
 local function getSmartAccuracy()
     local text = contestMeter.Text
@@ -60,26 +56,9 @@ end
 
 
 local function getAutoMixAccuracy()
-    local accuracy
-    if mixCurrentMode == "great" then
-        accuracy = 0.95
-        mixGreatCount += 1
-        if mixGreatCount >= mixGreatsNeeded then
-            mixCurrentMode  = "perfect"
-            mixGreatCount   = 0
-            mixGreatsNeeded = math.random(4, 5)
-        end
-    else
-        accuracy = 1.0
-        mixPerfectCount += 1
-        if mixPerfectCount >= mixPerfectsNeeded then
-            mixCurrentMode    = "great"
-            mixPerfectCount   = 0
-            mixPerfectsNeeded = math.random(1, 2)
-        end
-    end
-    return accuracy
+    return math.random(1, 10) <= 3 and 1.0 or 0.95
 end
+
 
 local function shoot()
     if not shotEnabled then return end
@@ -765,9 +744,7 @@ local ShotModeDropdown = ShotTab:Dropdown({
     elseif option == "Great" then
         shotEnabled = true; autoMixEnabled = false; ShotAccuracy = 0.95; smartContestEnabled = false
     elseif option == "Auto Mix" then
-        shotEnabled = true; autoMixEnabled = true; smartContestEnabled = false
-        mixCurrentMode = "great"; mixGreatCount = 0; mixPerfectCount = 0
-        mixGreatsNeeded = math.random(4,5); mixPerfectsNeeded = math.random(1,2)
+    shotEnabled = true; autoMixEnabled = true; smartContestEnabled = false
     elseif option == "Smart Contest" then
         shotEnabled = true; autoMixEnabled = false; smartContestEnabled = true
     elseif option == "Off" then
@@ -946,7 +923,7 @@ local PostSettingsSection = PostTab:Section({
     Title     = "Post Settings",
     Box       = true,
     BoxBorder = true,
-    Opened    = true,
+    Opened    = false,
 })
 
 PostSettingsSection:Slider({
@@ -1116,7 +1093,7 @@ local GuardSettingsSection = GuardTab:Section({
     Title     = "Guard Settings",
     Box       = true,
     BoxBorder = true,
-    Opened    = true,
+    Opened    = false,
 })
 
 GuardSettingsSection:Slider({
@@ -1195,16 +1172,23 @@ UnlockTab:Button({
     IconAlign   = "Left",
     Locked      = not isCompatible,
     LockedTitle = "Your executor is not compatible",
-    Callback    = function()
-        run_on_actor(getactors()[1], game:HttpGet("https://raw.githubusercontent.com/6ft8/basketballegendss/refs/heads/main/actor.lua"))
-        Notify({
-            Title    = "Unlock All",
-            Content  = "Re-running unlock, please wait...",
-            Icon     = "solar:lock-keyhole-unlocked-bold",
-            Duration = 4,
-        })
-    end,
-})
+    Callback = function()
+    run_on_actor(getactors()[1], game:HttpGet("https://raw.githubusercontent.com/6ft8/basketballegendss/refs/heads/main/actor.lua"))
+    Notify({
+        Title    = "Unlock All",
+        Content  = "Re-running unlock, please wait...",
+        Icon     = "solar:lock-keyhole-unlocked-bold",
+        Duration = 4,
+    })
+    task.wait(3.5)
+    Notify({
+        Title    = "Unlock All",
+        Content  = "Done! Open your inventory to equip skins.",
+        Icon     = "solar:check-circle-bold",
+        Duration = 5,
+    })
+end,
+
 
 UnlockTab:Space()
 
