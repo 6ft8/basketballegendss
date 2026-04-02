@@ -1024,15 +1024,28 @@ StealTab:Section({ Title = "Anti Steal" })
 StealTab:Toggle({
     Flag  = "AntiStealEnabled",
     Title = "Anti Steal",
-    Desc  = [[Forces ankle break 
-on players who attempt to steal. (Blatant)]],
+    Desc  = [[Forces ankle break
+on players who attempt to steal. (Blatant)
+⚠️ Requires: Delta, Potassium, Volt, Volcano, Wave or Isaeva]],
     Value = false,
     Callback = function(value)
-        antiStealEnabled = value
         if value then
+            if not (run_on_actor and getactors) then
+                Notify({
+                    Title    = "Incompatible Executor",
+                    Content  = "Anti Steal requires run_on_actor. Use Delta, Potassium, Volt, Volcano, Wave or Isaeva.",
+                    Icon     = "solar:shield-warning-bold",
+                    Duration = 6,
+                })
+                -- force toggle back off
+                antiStealEnabled = false
+                return
+            end
+            antiStealEnabled = true
             _G.antiStealActive = true
             startAntiSteal()
         else
+            antiStealEnabled = false
             _G.antiStealActive = false
         end
         Notify({
@@ -1043,6 +1056,7 @@ on players who attempt to steal. (Blatant)]],
         })
     end,
 })
+
 
 -- ============================================================
 --  AUTO GUARD TAB
@@ -1343,6 +1357,106 @@ SuggestTab:Button({
 
         suggestText = ""
         SuggestInput:Set("")
+    end,
+})
+
+
+-- ============================================================
+--  CONFIG TAB
+-- ============================================================
+local ConfigTab = Window:Tab({
+    Title = "Config",
+    Icon  = "solar:folder-with-files-bold",
+})
+
+local ConfigManager = Window.ConfigManager
+local configName = "default"
+
+ConfigTab:Section({ Title = "Configuration" })
+ConfigTab:Section({
+    Title            = "Save and load your hub settings. Each config stores all your toggles, sliders, dropdowns, and keybinds.",
+    TextSize         = 15,
+    TextTransparency = 0.3,
+    FontWeight       = Enum.FontWeight.Medium,
+})
+
+ConfigTab:Space()
+
+local ConfigNameInput = ConfigTab:Input({
+    Title       = "Config Name",
+    Icon        = "solar:file-text-bold",
+    Placeholder = "e.g. my_settings",
+    Value       = "default",
+    Callback    = function(value)
+        configName = value
+    end,
+})
+
+ConfigTab:Space()
+
+local allConfigs     = ConfigManager:AllConfigs()
+local defaultConfig  = table.find(allConfigs, configName) and configName or nil
+
+local ConfigDropdown = ConfigTab:Dropdown({
+    Title  = "Saved Configs",
+    Desc   = "Select an existing config to load or overwrite",
+    Values = allConfigs,
+    Value  = defaultConfig,
+    Callback = function(value)
+        configName = value
+        ConfigNameInput:Set(value)
+    end,
+})
+
+ConfigTab:Space()
+
+local SaveGroup = ConfigTab:Group({})
+
+SaveGroup:Button({
+    Title     = "Save Config",
+    Icon      = "solar:diskette-bold",
+    Color     = Green,
+    Justify   = "Center",
+    IconAlign = "Left",
+    Callback  = function()
+        Window.CurrentConfig = ConfigManager:Config(configName)
+        if Window.CurrentConfig:Save() then
+            Notify({
+                Title    = "Config Saved",
+                Content  = "'" .. configName .. "' has been saved!",
+                Icon     = "solar:diskette-bold",
+                Duration = 3,
+            })
+            ConfigDropdown:Refresh(ConfigManager:AllConfigs())
+        end
+    end,
+})
+
+SaveGroup:Space()
+
+SaveGroup:Button({
+    Title     = "Load Config",
+    Icon      = "solar:import-bold",
+    Color     = Blue,
+    Justify   = "Center",
+    IconAlign = "Left",
+    Callback  = function()
+        Window.CurrentConfig = ConfigManager:Config(configName)
+        if Window.CurrentConfig:Load() then
+            Notify({
+                Title    = "Config Loaded",
+                Content  = "'" .. configName .. "' has been loaded!",
+                Icon     = "solar:import-bold",
+                Duration = 3,
+            })
+        else
+            Notify({
+                Title    = "Config Not Found",
+                Content  = "No config named '" .. configName .. "' exists.",
+                Icon     = "solar:shield-warning-bold",
+                Duration = 3,
+            })
+        end
     end,
 })
 
