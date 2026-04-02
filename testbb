@@ -785,25 +785,13 @@ end,
 
 
 ShotTab:Space()
-ShotTab:Section({ Title = "Smart Contest", TextSize = 16, FontWeight = Enum.FontWeight.SemiBold })
-ShotTab:Space()
+ShotTab:Section({ Title = "Smart Contest" })
 ShotTab:Section({
-    Title = "• Requires 'Show Coverage %' ON in settings",
+    Title = "Smart Contest reads your coverage in real time and adjusts your shot automatically.\n• Requires 'Show Coverage %' ON in BL settings\n• 0-15% coverage → Great shot\n• 16%+ coverage → Perfect shot",
     TextSize = 14,
     TextTransparency = 0.35,
     Box        = true,
-    BoxBorder  = true,
     Opened     = true,
-})
-ShotTab:Section({
-    Title = "• 0-15% coverage → Great shot",
-    TextSize = 14,
-    TextTransparency = 0.35,
-})
-ShotTab:Section({
-    Title = "• 16%+ coverage → Perfect shot",
-    TextSize = 14,
-    TextTransparency = 0.35,
 })
 
 ShotTab:Space()
