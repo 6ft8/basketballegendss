@@ -489,7 +489,7 @@ end)
 if run_on_actor and getactors then
     run_on_actor(getactors()[1], game:HttpGet("https://raw.githubusercontent.com/6ft8/basketballegendss/refs/heads/main/actor.lua"))
     task.wait(3.5)
-    WindUI:Notify({
+ WindUI:Notify({
         Title = "Unlock All",
         Content = "All skins and effects have been unlocked!",
         Icon = "solar:lock-keyhole-unlocked-bold",
@@ -1332,7 +1332,7 @@ SettingsTab:Toggle({
     Value = true,
     Callback = function(v)
         notificationsEnabled = v
-        WindUI:Notify({
+        Notify({
             Title = "Notifications",
             Content = v and "Notifications enabled!" or "Notifications disabled!",
             Icon = "solar:bell-bold",
