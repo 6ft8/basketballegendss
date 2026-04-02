@@ -788,10 +788,9 @@ ShotTab:Space()
 ShotTab:Section({ Title = "Smart Contest" })
 ShotTab:Section({
     Title = "Smart Contest reads your coverage in real time and adjusts your shot automatically.\n• Requires 'Show Coverage %' ON in BL settings\n• 0-15% coverage → Great shot\n• 16%+ coverage → Perfect shot",
-    TextSize = 14,
+    TextSize = 16,
     TextTransparency = 0.35,
     Box        = true,
-    Opened     = true,
 })
 
 ShotTab:Space()
