@@ -787,7 +787,7 @@ end,
 ShotTab:Space()
 ShotTab:Section({ Title = "Smart Contest" })
 ShotTab:Section({
-    Title = "Smart Contest reads your coverage in real time and adjusts your shot automatically.\n• Requires 'Show Coverage %' ON in BL settings\n• 0-15% coverage → Great shot\n• 16%+ coverage → Perfect shot",
+    Title = "Smart Contest reads your coverage in real time and adjusts your shot automatically.\n• Requires 'Show Coverage %' ON in game settings\n• 0-15% coverage → Great shot\n• 16%+ coverage → Perfect shot",
     TextSize = 16,
     TextTransparency = 0.35,
     Box        = true,
@@ -1257,7 +1257,7 @@ local SuggestTab = Window:Tab({
 
 SuggestTab:Section({ Title = "Feature Suggestions" })
 SuggestTab:Section({
-    Title            = "Have an idea for a new feature or improvement? Send it directly to falzzz!",
+    Title            = "Have an idea for a new feature or improvement? Send it directly to me (falzzz)!",
     TextSize         = 16,
     TextTransparency = 0.3,
     FontWeight       = Enum.FontWeight.Medium,
@@ -1266,7 +1266,7 @@ SuggestTab:Section({
 SuggestTab:Space()
 SuggestTab:Section({ Title = "Guidelines", TextSize = 16, FontWeight = Enum.FontWeight.SemiBold })
 SuggestTab:Section({
-    Title            = "• Be specific about what you want\n• Explain why it would be useful\n• One suggestion per submission is best",
+    Title            = "• Be specific about what you want\n• Explain why it would be useful\n• One suggestion per submission is best\n• You can submit as much suggestions as you'd like!",
     TextSize         = 14,
     TextTransparency = 0.35,
 })
@@ -1297,8 +1297,8 @@ SuggestTab:Space()
 
 SuggestTab:Button({
     Title     = "Submit Suggestion",
-    Icon      = "solar:star-bold",
-    Color     = Orange,
+    Icon      = "solar:plain-2-bold",
+    Color     =  Color3.fromHex("#FF7A30"),
     Justify   = "Center",
     IconAlign = "Left",
     Callback  = function()
