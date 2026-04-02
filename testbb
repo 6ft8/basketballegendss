@@ -490,7 +490,7 @@ end)
 if run_on_actor and getactors then
     run_on_actor(getactors()[1], game:HttpGet("https://raw.githubusercontent.com/6ft8/basketballegendss/refs/heads/main/actor.lua"))
     task.wait(3.5)
-    Notify({
+    WindUI:Notify({
         Title = "Unlock All",
         Content = "All skins and effects have been unlocked!",
         Icon = "solar:lock-keyhole-unlocked-bold",
@@ -498,7 +498,7 @@ if run_on_actor and getactors then
     })
 
 else
-    Notify({
+    WindUI:Notify({
         Title = "Unlock All",
         Content = "Your executor is not compatible! Use Delta, Potassium, Volt, Volcano, Wave or Isaeva.",
         Icon = "solar:shield-warning-bold",
@@ -558,6 +558,13 @@ local Window = WindUI:CreateWindow({
         ButtonsType = "Default",
     },
 })
+
+local notificationsEnabled = true
+local function Notify(data)
+    if not notificationsEnabled then return end
+    WindUI:Notify(data)
+end
+
 
 Window:Tag({
     Title  = "by falzzz",
@@ -1301,6 +1308,17 @@ SettingsTab:Toggle({
     Value = true,
     Callback = function(v)
         WindUI:SetNotificationsEnabled(v)
+    end,
+})
+
+SettingsTab:Space()
+SettingsTab:Section({ Title = "Notifications" })
+SettingsTab:Toggle({
+    Title = "Enable Notifications",
+    Desc  = "Toggle all hub notifications on or off",
+    Value = true,
+    Callback = function(v)
+        notificationsEnabled = v
     end,
 })
 
