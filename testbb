@@ -45,13 +45,13 @@ local function getSmartAccuracy()
     local percent = text:match("(%d+)%%")
     if percent then
         percent = tonumber(percent)
-        if percent <= 20 then
+        if percent <= 15 then
             return 0.95
         else
             return 1.0
         end
     end
-    if text == "WIDE OPEN" or text == "COVERED" then
+    if text == "WIDE OPEN" then
         return 0.95
     else
         return 1.0
@@ -791,19 +791,21 @@ ShotTab:Toggle({
 
     Value = false,
         Callback = function(value)
-        smartContestEnabled = value
-        if value then
-            shotEnabled = true
-            autoMixEnabled = false
-            ShotModeDropdown:Set("Off")
-        end
-        Notify({
-            Title = "Smart Contest",
-            Content = value and "Smart Contest enabled!" or "Smart Contest disabled!",
-            Icon = "solar:target-bold",
-            Duration = 2,
-                })
-    end,
+    smartContestEnabled = value
+    if value then
+        shotEnabled = true
+        autoMixEnabled = false
+        ShotModeDropdown:Set("Off")
+        shotEnabled = true -- reset to true after dropdown sets it false
+    end
+    Notify({
+        Title = "Smart Contest",
+        Content = value and "Smart Contest enabled!" or "Smart Contest disabled!",
+        Icon = "solar:target-bold",
+        Duration = 2,
+    })
+end,
+
 })
 
 ShotTab:Space()
