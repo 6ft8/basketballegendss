@@ -802,13 +802,12 @@ ShotTab:Toggle({
             Content = value and "Smart Contest enabled!" or "Smart Contest disabled!",
             Icon = "solar:target-bold",
             Duration = 2,
-        })
+                })
     end,
-
-
-
+})
 
 ShotTab:Space()
+
 ShotTab:Section({ Title = "Keybind" })
 
 ShotTab:Keybind({
