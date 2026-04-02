@@ -924,13 +924,23 @@ end
 -- ============================================================
 local PostTab = Window:Tab({
     Title = "Post",
-    Icon = "solar:target-bold",
-
+    Icon  = "solar:target-bold",
 })
 
 PostTab:Section({ Title = "Post Aimbot" })
+
 PostTab:Toggle({
-    PostTab:Space()
+    Flag  = "PostAimbot",
+    Title = "Post Aimbot",
+    Desc  = "Auto-posts nearest opponent when you have the ball",
+    Value = false,
+    Callback = function(value)
+        postAimbotEnabled = value
+        Notify({ Title = "Post Aimbot", Content = value and "Post Aimbot enabled!" or "Post Aimbot disabled!", Icon = "solar:crosshairs-bold", Duration = 2 })
+    end,
+})
+
+PostTab:Space()
 
 local PostSettingsSection = PostTab:Section({
     Title     = "Post Settings",
@@ -972,6 +982,7 @@ PostSettingsSection:Slider({
     Icons     = { To = "sfsymbols:personCropCircleBadgeMinus" },
     Callback  = function(value) postActivationDistance = value end,
 })
+
 
 
 
