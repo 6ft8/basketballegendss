@@ -1188,6 +1188,8 @@ UnlockTab:Button({
         Duration = 5,
     })
 end,
+})
+
 
 
 UnlockTab:Space()
