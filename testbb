@@ -530,6 +530,7 @@ end
 local Window = WindUI:CreateWindow({
     Title       = "falzzz hub",
     Author      = "Basketball Legends",
+    NotifyPosition = "BottomRight",
     Folder      = "falzzzhub",
     Icon        = "solar:basketball-bold-duotone",
     Accent      = Orange,
