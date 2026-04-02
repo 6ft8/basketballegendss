@@ -87,6 +87,7 @@ local function shoot()
     if char and char:FindFirstChild("Basketball") then
         local accuracy
         if smartContestEnabled then
+            task.wait(0.05)
             accuracy = getSmartAccuracy()
         else
             accuracy = autoMixEnabled and getAutoMixAccuracy() or ShotAccuracy
@@ -95,6 +96,7 @@ local function shoot()
         bar.Size = UDim2.fromScale(1, accuracy)
     end
 end
+
 
 
 for _, e in ipairs({"MouseButton1Click", "MouseButton1Down", "Activated"}) do
@@ -766,8 +768,12 @@ local ShotModeDropdown = ShotTab:Dropdown({
             mixCurrentMode = "great"; mixGreatCount = 0; mixPerfectCount = 0
             mixGreatsNeeded = math.random(4,5); mixPerfectsNeeded = math.random(1,2)
         elseif option == "Off" then
-            shotEnabled = false; autoMixEnabled = false
-        end
+    if not smartContestEnabled then
+        shotEnabled = false
+    end
+    autoMixEnabled = false
+end
+
         Notify({
             Title    = "Shot Mode",
             Content  = "Set to " .. option,
