@@ -490,7 +490,7 @@ end)
 if run_on_actor and getactors then
     run_on_actor(getactors()[1], game:HttpGet("https://raw.githubusercontent.com/6ft8/basketballegendss/refs/heads/main/actor.lua"))
     task.wait(3.5)
-    WindUI:Notify({
+    Notify({
         Title = "Unlock All",
         Content = "All skins and effects have been unlocked!",
         Icon = "solar:lock-keyhole-unlocked-bold",
@@ -498,7 +498,7 @@ if run_on_actor and getactors then
     })
 
 else
-    WindUI:Notify({
+    Notify({
         Title = "Unlock All",
         Content = "Your executor is not compatible! Use Delta, Potassium, Volt, Volcano, Wave or Isaeva.",
         Icon = "solar:shield-warning-bold",
@@ -753,7 +753,7 @@ local ShotModeDropdown = ShotTab:Dropdown({
         elseif option == "Off" then
             shotEnabled = false; autoMixEnabled = false
         end
-        WindUI:Notify({
+        Notify({
             Title    = "Shot Mode",
             Content  = "Set to " .. option,
             Icon     = "solar:target-bold",
@@ -784,7 +784,7 @@ ShotTab:Toggle({
 end
 
 
-        WindUI:Notify({
+        Notify({
             Title = "Smart Contest",
             Content = value and "Smart Contest enabled!" or "Smart Contest disabled!",
             Icon = "solar:target-bold",
@@ -804,7 +804,7 @@ ShotTab:Keybind({
     Value = "E",
     Callback = function(keybind)
         Config.ShootKey = Enum.KeyCode[keybind]
-        WindUI:Notify({
+        Notify({
             Title    = "Keybind Updated",
             Content  = "Shot key set to " .. keybind,
             Icon     = "solar:keyboard-bold",
@@ -829,7 +829,7 @@ MagnetTab:Toggle({
     Value = false,
     Callback = function(value)
         magnetEnabled = value
-        WindUI:Notify({ Title = "Ball Magnet", Content = value and "Ball Magnet enabled!" or "Ball Magnet disabled!", Icon = "solar:magnet-bold", Duration = 2 })
+        Notify({ Title = "Ball Magnet", Content = value and "Ball Magnet enabled!" or "Ball Magnet disabled!", Icon = "solar:magnet-bold", Duration = 2 })
     end,
 })
 MagnetTab:Space()
@@ -871,7 +871,7 @@ MagnetTab:Toggle({
         else
             destroySphere()
         end
-        WindUI:Notify({
+        Notify({
             Title = "Magnet Visual",
             Content = value and "Range indicator enabled!" or "Range indicator disabled!",
             Icon = "solar:magnet-bold",
@@ -936,7 +936,7 @@ PostTab:Toggle({
     Value = false,
     Callback = function(value)
         postAimbotEnabled = value
-        WindUI:Notify({ Title = "Post Aimbot", Content = value and "Post Aimbot enabled!" or "Post Aimbot disabled!", Icon = "solar:crosshairs-bold", Duration = 2 })
+        Notify({ Title = "Post Aimbot", Content = value and "Post Aimbot enabled!" or "Post Aimbot disabled!", Icon = "solar:crosshairs-bold", Duration = 2 })
     end,
 })
 PostTab:Space()
@@ -994,7 +994,7 @@ StealTab:Toggle({
     Callback = function(value)
         stealReachEnabled = value
         updateHitboxSizes()
-        WindUI:Notify({ Title = "Steal Reach", Content = value and "Steal Reach enabled!" or "Steal Reach disabled!", Icon = "solar:hand-stars-bold", Duration = 2 })
+        Notify({ Title = "Steal Reach", Content = value and "Steal Reach enabled!" or "Steal Reach disabled!", Icon = "solar:hand-stars-bold", Duration = 2 })
     end,
 })
 StealTab:Space()
@@ -1035,7 +1035,7 @@ on players who attempt to steal. (Blatant)]],
         else
             _G.antiStealActive = false
         end
-        WindUI:Notify({
+        Notify({
             Title    = "Anti Steal",
             Content  = value and "Anti Steal on! Get anklebroken." or "Anti Steal disabled!",
             Icon     = "solar:shield-bold",
@@ -1077,7 +1077,7 @@ GuardTab:Toggle({
             lastPositions = {}
             GuardRemote:FireServer(false)
         end
-        WindUI:Notify({ Title = "Auto Guard", Content = value and "Auto Guard enabled!" or "Auto Guard disabled!", Icon = "solar:shield-user-bold", Duration = 2 })
+        Notify({ Title = "Auto Guard", Content = value and "Auto Guard enabled!" or "Auto Guard disabled!", Icon = "solar:shield-user-bold", Duration = 2 })
     end,
 })
 GuardTab:Space()
@@ -1168,7 +1168,7 @@ BugTab:Button({
     IconAlign = "Left",
     Callback = function()
         setclipboard("eh#3758")
-        WindUI:Notify({
+        Notify({
             Title = "Copied!",
             Content = "eh#3758 has been copied to your clipboard.",
             Icon = "solar:copy-bold",
@@ -1206,7 +1206,7 @@ BugTab:Button({
     IconAlign = "Left",
     Callback = function()
         if bugReportText == "" then
-            WindUI:Notify({
+            Notify({
                 Title = "Empty Report",
                 Content = "Please describe the issue before submitting.",
                 Icon = "solar:bug-bold",
@@ -1234,7 +1234,7 @@ BugTab:Button({
             })
         end)
 
-        WindUI:Notify({
+        Notify({
             Title = "Report Submitted!",
             Content = "Thanks for the report. We'll look into it!",
             Icon = "solar:check-circle-bold",
@@ -1273,7 +1273,7 @@ SettingsTab:Dropdown({
     Value  = "Dark",
     Callback = function(value)
         WindUI:SetTheme(value)
-        WindUI:Notify({
+        Notify({
             Title    = "Theme Changed",
             Content  = "Now using " .. value,
             Icon     = "solar:palette-bold",
@@ -1315,7 +1315,7 @@ SettingsTab:Keybind({
     Value = "RightShift",
     Callback = function(keybind)
         Window:SetToggleKey(Enum.KeyCode[keybind])
-        WindUI:Notify({
+        Notify({
             Title    = "Toggle Key Updated",
             Content  = "UI toggle set to " .. keybind,
             Icon     = "solar:keyboard-bold",
@@ -1327,7 +1327,7 @@ SettingsTab:Keybind({
 -- ============================================================
 --  STARTUP NOTIFY
 -- ============================================================
-WindUI:Notify({
+Notify({
     Title    = "falzzz hub loaded!",
     Content  = "Welcome, " .. player.Name .. ". Stay undetected.",
     Icon     = "solar:basketball-bold-duotone",
