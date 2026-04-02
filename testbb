@@ -930,47 +930,49 @@ local PostTab = Window:Tab({
 
 PostTab:Section({ Title = "Post Aimbot" })
 PostTab:Toggle({
-    Flag = "PostAimbot",
-    Title = "Post Aimbot",
-    Desc = "Auto-posts nearest opponent when you have the ball",
-    Value = false,
-    Callback = function(value)
-        postAimbotEnabled = value
-        Notify({ Title = "Post Aimbot", Content = value and "Post Aimbot enabled!" or "Post Aimbot disabled!", Icon = "solar:crosshairs-bold", Duration = 2 })
-    end,
+    PostTab:Space()
+
+local PostSettingsSection = PostTab:Section({
+    Title     = "Post Settings",
+    Box       = true,
+    BoxBorder = true,
+    Opened    = true,
 })
-PostTab:Space()
-PostTab:Slider({
-    Flag = "JitterSpeed",
-    Title = "Jitter Speed",
-    Desc = [[
+
+PostSettingsSection:Slider({
+    Flag      = "JitterSpeed",
+    Title     = "Jitter Speed",
+    Desc      = [[
 • Controls update speed.
 • Higher = smoother aim.
 • Lower = more subtle.
 ]],
-    Step = 1,
+    Step      = 1,
     IsTooltip = true,
     IsTextbox = false,
-    Value = { Min = 1, Max = 20, Default = 3 },
-    Icons = { To = "sfsymbols:hare" },
-    Callback = function(value) postUpdateInterval = value / 100 end,
+    Value     = { Min = 1, Max = 20, Default = 3 },
+    Icons     = { To = "sfsymbols:hare" },
+    Callback  = function(value) postUpdateInterval = value / 100 end,
 })
-PostTab:Space()
-PostTab:Slider({
-    Flag = "PostDistance",
-    Title = "Detection Distance (Range)",
-    Desc = [[
+
+PostSettingsSection:Space()
+
+PostSettingsSection:Slider({
+    Flag      = "PostDistance",
+    Title     = "Detection Distance (Range)",
+    Desc      = [[
 • Sets activation range.
 • Only targets nearby players.
 • Lower = less tracking.
 ]],
-    Step = 1,
+    Step      = 1,
     IsTooltip = true,
     IsTextbox = false,
-    Value = { Min = 5, Max = 30, Default = 10 },
-    Icons = { To = "sfsymbols:personCropCircleBadgeMinus" },
-    Callback = function(value) postActivationDistance = value end,
+    Value     = { Min = 5, Max = 30, Default = 10 },
+    Icons     = { To = "sfsymbols:personCropCircleBadgeMinus" },
+    Callback  = function(value) postActivationDistance = value end,
 })
+
 
 
 -- ============================================================
@@ -1068,64 +1070,49 @@ local GuardTab = Window:Tab({
 
 GuardTab:Section({ Title = "Auto Guard" })
 GuardTab:Toggle({
-    Flag = "AutoGuard",
-    Title = "Auto Guard",
-    Desc = [[
-• Tracks the opponent with the ball.
-• Positions you in front of them automatically.
-• Helps maintain consistent defense.
-]],
-    Value = false,
-    Callback = function(value)
-        autoGuardEnabled = value
-        if value then
-            lastPositions = {}
-            if not autoGuardConnection then
-                autoGuardConnection = RunService.Heartbeat:Connect(autoGuard)
-            end
-        else
-            if autoGuardConnection then
-                autoGuardConnection:Disconnect()
-                autoGuardConnection = nil
-            end
-            lastPositions = {}
-            GuardRemote:FireServer(false)
-        end
-        Notify({ Title = "Auto Guard", Content = value and "Auto Guard enabled!" or "Auto Guard disabled!", Icon = "solar:shield-user-bold", Duration = 2 })
-    end,
+    GuardTab:Space()
+
+local GuardSettingsSection = GuardTab:Section({
+    Title     = "Guard Settings",
+    Box       = true,
+    BoxBorder = true,
+    Opened    = true,
 })
-GuardTab:Space()
-GuardTab:Slider({
-    Flag = "GuardDistance",
-    Title = "Detection Distance (Range)",
-    Desc = [[
+
+GuardSettingsSection:Slider({
+    Flag      = "GuardDistance",
+    Title     = "Detection Distance (Range)",
+    Desc      = [[
 • Distance from target.
 • Lower = tighter defense.
 • Higher = more space.
 ]],
-    Step = 1,
-    IsTooltip = true, 
+    Step      = 1,
+    IsTooltip = true,
     IsTextbox = false,
-    Value = { Min = 5, Max = 20, Default = 10 },
-    Icons = { To = "sfsymbols:personCropCircleBadgePlus" },
-    Callback = function(value) guardDistance = value end,
+    Value     = { Min = 5, Max = 20, Default = 10 },
+    Icons     = { To = "sfsymbols:personCropCircleBadgePlus" },
+    Callback  = function(value) guardDistance = value end,
 })
-GuardTab:Space()
-GuardTab:Slider({
-    Flag = "PredictionTime",
-    Title = "Prediction",
-    Desc = [[
+
+GuardSettingsSection:Space()
+
+GuardSettingsSection:Slider({
+    Flag      = "PredictionTime",
+    Title     = "Prediction",
+    Desc      = [[
 • Predicts movement.
 • Higher = more ahead.
 • Lower = more reactive.
 ]],
-    Step = 1,
+    Step      = 1,
     IsTooltip = true,
     IsTextbox = false,
-    Value = { Min = 1, Max = 8, Default = 3 },
-    Icons = { To = "solar:double-alt-arrow-right-bold" },
-    Callback = function(value) predictionTime = value / 10 end,
+    Value     = { Min = 1, Max = 8, Default = 3 },
+    Icons     = { To = "solar:double-alt-arrow-right-bold" },
+    Callback  = function(value) predictionTime = value / 10 end,
 })
+
 
 
 -- ============================================================
@@ -1136,19 +1123,57 @@ local UnlockTab = Window:Tab({
     Icon  = "solar:lock-keyhole-unlocked-bold",
 })
 
+local isCompatible = (run_on_actor ~= nil and getactors ~= nil)
+local unlockStatus = isCompatible and "✅  Unlocked & Active" or "❌  Incompatible Executor"
+
 UnlockTab:Section({ Title = "Unlock All" })
+
 UnlockTab:Section({
-    Title            = "All skins and effects are already unlocked!!! Open your inventory in-game to equip them.",
-    TextSize         = 18,
+    Title      = unlockStatus,
+    TextSize   = 16,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+
+UnlockTab:Space()
+
+UnlockTab:Section({
+    Title            = isCompatible
+        and "All skins and effects are unlocked! Open your inventory in-game to equip them."
+        or  "Your executor is not compatible with Unlock All. Please use Delta, Potassium, Volt, Volcano, Wave or Isaeva.",
+    TextSize         = 15,
     TextTransparency = 0.3,
     FontWeight       = Enum.FontWeight.Medium,
 })
+
 UnlockTab:Space()
+
+UnlockTab:Button({
+    Title       = "Re-run Unlock All",
+    Icon        = "solar:lock-keyhole-unlocked-bold",
+    Color       = Orange,
+    Justify     = "Center",
+    IconAlign   = "Left",
+    Locked      = not isCompatible,
+    LockedTitle = "Your executor is not compatible",
+    Callback    = function()
+        run_on_actor(getactors()[1], game:HttpGet("https://raw.githubusercontent.com/6ft8/basketballegendss/refs/heads/main/actor.lua"))
+        Notify({
+            Title    = "Unlock All",
+            Content  = "Re-running unlock, please wait...",
+            Icon     = "solar:lock-keyhole-unlocked-bold",
+            Duration = 4,
+        })
+    end,
+})
+
+UnlockTab:Space()
+
 UnlockTab:Section({
     Title            = "Compatible Executors: Delta  •  Potassium  •  Volt  •  Volcano  •  Wave  •  Isaeva",
-    TextSize         = 18,
+    TextSize         = 14,
     TextTransparency = 0.45,
 })
+
 
 
 -- ============================================================
@@ -1550,11 +1575,17 @@ SettingsTab:Keybind({
 })
 
 -- ============================================================
---  STARTUP NOTIFY
+--  STARTUP POPUP
 -- ============================================================
-Notify({
-    Title    = "falzzz hub loaded!",
-    Content  = "Welcome, " .. player.Name .. ". Stay undetected.",
-    Icon     = "solar:basketball-bold-duotone",
-    Duration = 6,
+WindUI:Popup({
+    Title   = "falzzz hub",
+    Icon    = "solar:basketball-bold-duotone",
+    Content = "Welcome, " .. player.Name .. "!\nStay undetected. Toggle UI with RightShift.",
+    Buttons = {
+        {
+            Title   = "Let's go!",
+            Icon    = "solar:star-bold",
+            Variant = "Tertiary",
+        },
+    },
 })
