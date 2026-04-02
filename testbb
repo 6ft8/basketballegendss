@@ -1324,22 +1324,6 @@ SettingsTab:Toggle({
 })
 
 
-SettingsTab:Space()
-SettingsTab:Section({ Title = "Notifications" })
-SettingsTab:Toggle({
-    Title = "Enable Notifications",
-    Desc  = "Toggle all hub notifications on or off",
-    Value = true,
-    Callback = function(v)
-        notificationsEnabled = v
-        Notify({
-            Title = "Notifications",
-            Content = v and "Notifications enabled!" or "Notifications disabled!",
-            Icon = "solar:bell-bold",
-            Duration = 2,
-        })
-    end,
-})
 
 
 SettingsTab:Space()
