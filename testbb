@@ -784,17 +784,6 @@ end,
 
 
 
-        Notify({
-            Title    = "Shot Mode",
-            Content  = "Set to " .. option,
-            Icon     = "solar:target-bold",
-            Duration = 2,
-        })
-    end,
-})
-
-
-
 ShotTab:Space()
 
 ShotTab:Section({ Title = "Keybind" })
