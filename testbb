@@ -580,6 +580,7 @@ end
 
 
 
+
 -- ============================================================
 -- INFO TAB
 -- ============================================================
@@ -789,20 +790,21 @@ ShotTab:Toggle({
 ]],
 
     Value = false,
-    Callback = function(value)
-    smartContestEnabled = value
-    if value then
-        shotEnabled = true
-        autoMixEnabled = false
-        ShotModeDropdown:Set("Off")
-    end
-    Notify({
-        Title = "Smart Contest",
-        Content = value and "Smart Contest enabled!" or "Smart Contest disabled!",
-        Icon = "solar:target-bold",
-        Duration = 2,
-    })
-end,
+        Callback = function(value)
+        smartContestEnabled = value
+        if value then
+            shotEnabled = true
+            autoMixEnabled = false
+            ShotModeDropdown:Set("Off")
+        end
+        Notify({
+            Title = "Smart Contest",
+            Content = value and "Smart Contest enabled!" or "Smart Contest disabled!",
+            Icon = "solar:target-bold",
+            Duration = 2,
+        })
+    end,
+
 
 
 
@@ -1321,6 +1323,7 @@ SettingsTab:Toggle({
         })
     end,
 })
+
 
 SettingsTab:Space()
 SettingsTab:Section({ Title = "Window" })
