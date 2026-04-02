@@ -1082,7 +1082,35 @@ local GuardTab = Window:Tab({
 
 GuardTab:Section({ Title = "Auto Guard" })
 GuardTab:Toggle({
-    GuardTab:Space()
+    Flag = "AutoGuard",
+    Title = "Auto Guard",
+    Desc = [[
+• Tracks the opponent with the ball.
+• Positions you in front of them automatically.
+• Helps maintain consistent defense.
+]],
+    Value = false,
+    Callback = function(value)
+        autoGuardEnabled = value
+        if value then
+            lastPositions = {}
+            if not autoGuardConnection then
+                autoGuardConnection = RunService.Heartbeat:Connect(autoGuard)
+            end
+        else
+            if autoGuardConnection then
+                autoGuardConnection:Disconnect()
+                autoGuardConnection = nil
+            end
+            lastPositions = {}
+            GuardRemote:FireServer(false)
+        end
+        Notify({ Title = "Auto Guard", Content = value and "Auto Guard enabled!" or "Auto Guard disabled!", Icon = "solar:shield-user-bold", Duration = 2 })
+    end,
+})
+
+GuardTab:Space()
+
 
 local GuardSettingsSection = GuardTab:Section({
     Title     = "Guard Settings",
