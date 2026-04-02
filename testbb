@@ -785,10 +785,6 @@ end,
 
 
 ShotTab:Space()
-
-ShotTab:Section({ Title = "Keybind" })
-
-ShotTab:Space()
 ShotTab:Section({ Title = "Smart Contest", TextSize = 16, FontWeight = Enum.FontWeight.SemiBold })
 ShotTab:Space()
 ShotTab:Section({
@@ -806,9 +802,10 @@ ShotTab:Section({
     TextSize = 14,
     TextTransparency = 0.35,
 })
+
 ShotTab:Space()
 
-
+ShotTab:Section({ Title = "Keybind" })
 
 ShotTab:Keybind({
     Flag  = "ShootKeybind",
