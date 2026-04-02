@@ -572,6 +572,13 @@ Window:Tag({
     Border = true,
 })
 
+local notificationsEnabled = true
+local function Notify(data)
+    if not notificationsEnabled then return end
+    WindUI:Notify(data)
+end
+
+
 -- ============================================================
 -- INFO TAB
 -- ============================================================
@@ -1317,6 +1324,22 @@ SettingsTab:Toggle({
 })
 
 
+SettingsTab:Space()
+SettingsTab:Section({ Title = "Notifications" })
+SettingsTab:Toggle({
+    Title = "Enable Notifications",
+    Desc  = "Toggle all hub notifications on or off",
+    Value = true,
+    Callback = function(v)
+        notificationsEnabled = v
+        WindUI:Notify({
+            Title = "Notifications",
+            Content = v and "Notifications enabled!" or "Notifications disabled!",
+            Icon = "solar:bell-bold",
+            Duration = 2,
+        })
+    end,
+})
 
 
 SettingsTab:Space()
