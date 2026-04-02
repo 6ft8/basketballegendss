@@ -1,4 +1,4 @@
---// Basketball Legends - falzzz hub
+hub
 --// Perfect shot by @falzzz, Steal + Magnet by Kali Hub, Unlock All by falzzz
 --// UI: Wind UI v2 by Footagesus
 
@@ -520,6 +520,13 @@ local Red    = Color3.fromHex("#EF4F1D")
 local Yellow = Color3.fromHex("#ECA201")
 local Cyan   = Color3.fromHex("#00D4FF")
 
+local notificationsEnabled = true
+local function Notify(data)
+    if not notificationsEnabled then return end
+    WindUI:Notify(data)
+end
+
+
 local Window = WindUI:CreateWindow({
     Title       = "falzzz hub",
     Author      = "Basketball Legends",
@@ -722,7 +729,8 @@ ShotTab:Select()
 
 ShotTab:Section({ Title = "Shot Mode" })
 
-ShotTab:Dropdown({
+local ShotModeDropdown = ShotTab:Dropdown({
+
     Flag   = "ShotMode",
     Title  = "Shot Mode",
     Desc   = [[
@@ -770,9 +778,12 @@ ShotTab:Toggle({
     Callback = function(value)
         smartContestEnabled = value
         if value then
-            shotEnabled = true
-            autoMixEnabled = false
-        end
+    shotEnabled = true
+    autoMixEnabled = false
+    ShotModeDropdown:Set("Off")
+end
+
+
         WindUI:Notify({
             Title = "Smart Contest",
             Content = value and "Smart Contest enabled!" or "Smart Contest disabled!",
