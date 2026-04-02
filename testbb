@@ -756,23 +756,31 @@ local ShotModeDropdown = ShotTab:Dropdown({
 • Auto Mix alternates between Great & Perfect.
 • Off disables shot assist.
 ]],
-    Values = { "Perfect", "Great", "Auto Mix", "Off" },
+    Values = { "Perfect", "Great", "Auto Mix", "Smart Contest", "Off" },
+
     Value  = "Perfect",
     Callback = function(option)
-        if option == "Perfect" then
-            shotEnabled = true; autoMixEnabled = false; ShotAccuracy = 1.0
-        elseif option == "Great" then
-            shotEnabled = true; autoMixEnabled = false; ShotAccuracy = 0.95
-        elseif option == "Auto Mix" then
-            shotEnabled = true; autoMixEnabled = true
-            mixCurrentMode = "great"; mixGreatCount = 0; mixPerfectCount = 0
-            mixGreatsNeeded = math.random(4,5); mixPerfectsNeeded = math.random(1,2)
-        elseif option == "Off" then
-    if not smartContestEnabled then
-        shotEnabled = false
+    if option == "Perfect" then
+        shotEnabled = true; autoMixEnabled = false; ShotAccuracy = 1.0; smartContestEnabled = false
+    elseif option == "Great" then
+        shotEnabled = true; autoMixEnabled = false; ShotAccuracy = 0.95; smartContestEnabled = false
+    elseif option == "Auto Mix" then
+        shotEnabled = true; autoMixEnabled = true; smartContestEnabled = false
+        mixCurrentMode = "great"; mixGreatCount = 0; mixPerfectCount = 0
+        mixGreatsNeeded = math.random(4,5); mixPerfectsNeeded = math.random(1,2)
+    elseif option == "Smart Contest" then
+        shotEnabled = true; autoMixEnabled = false; smartContestEnabled = true
+    elseif option == "Off" then
+        shotEnabled = false; autoMixEnabled = false; smartContestEnabled = false
     end
-    autoMixEnabled = false
-end
+    Notify({
+        Title    = "Shot Mode",
+        Content  = "Set to " .. option,
+        Icon     = "solar:target-bold",
+        Duration = 2,
+    })
+end,
+
 
         Notify({
             Title    = "Shot Mode",
@@ -783,44 +791,20 @@ end
     end,
 })
 
-ShotTab:Space()
-ShotTab:Section({ Title = "Smart Contest" })
-ShotTab:Toggle({
-    Flag = "SmartContest",
-    Title = "Smart Contest",
-    Desc = [[
-• Turn Shot Mode to "Off" when using this
-• 0-15% coverage → Great shot
-• 16%+ coverage → Perfect shot
-• Auto adjusts based on your contest
-]],
 
-
-    Value = false,
-        Callback = function(value)
-    smartContestEnabled = value
-    if value then
-    shotEnabled = true
-    autoMixEnabled = false
-    task.delay(0.1, function()
-        ShotModeDropdown:Set("Off")
-        shotEnabled = true
-    end)
-end
-Notify({
-    Title = "Smart Contest",
-    Content = value and "Smart Contest enabled!" or "Smart Contest disabled!",
-    Icon = "solar:target-bold",
-    Duration = 2,
-})
-
-end,
-
-})
 
 ShotTab:Space()
 
 ShotTab:Section({ Title = "Keybind" })
+
+ShotTab:Space()
+ShotTab:Section({ Title = "Smart Contest" })
+ShotTab:Section({
+    Title = "Smart Contest reads your coverage in real time and adjusts your shot automatically.\n• Requires 'Show Coverage %' ON in BL settings\n• 0-15% coverage → Great shot\n• 16%+ coverage → Perfect shot",
+    TextSize = 14,
+    TextTransparency = 0.35,
+})
+
 
 ShotTab:Keybind({
     Flag  = "ShootKeybind",
