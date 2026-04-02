@@ -1440,28 +1440,28 @@ SaveGroup:Button({
     Color     = Blue,
     Justify   = "Center",
     IconAlign = "Left",
-    Callback = function()
-    Window.CurrentConfig = ConfigManager:Config(configName)
-    local prev = notificationsEnabled
-    notificationsEnabled = false
-    if Window.CurrentConfig:Load() then
-        notificationsEnabled = prev
-        Notify({
-            Title    = "Config Loaded",
-            Content  = "'" .. configName .. "' has been loaded!",
-            Icon     = "solar:import-bold",
-            Duration = 3,
-        })
-    else
-        notificationsEnabled = prev
-        Notify({
-            Title    = "Config Not Found",
-            Content  = "No config named '" .. configName .. "' exists.",
-            Icon     = "solar:shield-warning-bold",
-            Duration = 3,
-        })
-    end
-end,
+    Callback  = function()
+        Window.CurrentConfig = ConfigManager:Config(configName)
+        local prev = notificationsEnabled
+        notificationsEnabled = false
+        if Window.CurrentConfig:Load() then
+            notificationsEnabled = prev
+            Notify({
+                Title    = "Config Loaded",
+                Content  = "'" .. configName .. "' has been loaded!",
+                Icon     = "solar:import-bold",
+                Duration = 3,
+            })
+        else
+            notificationsEnabled = prev
+            Notify({
+                Title    = "Config Not Found",
+                Content  = "No config named '" .. configName .. "' exists.",
+                Icon     = "solar:shield-warning-bold",
+                Duration = 3,
+            })
+        end
+    end,
 })
 
 
