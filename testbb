@@ -773,13 +773,15 @@ local ShotModeDropdown = ShotTab:Dropdown({
     elseif option == "Off" then
         shotEnabled = false; autoMixEnabled = false; smartContestEnabled = false
     end
-    Notify({
+        Notify({
         Title    = "Shot Mode",
         Content  = "Set to " .. option,
         Icon     = "solar:target-bold",
         Duration = 2,
     })
 end,
+})
+
 
 
         Notify({
