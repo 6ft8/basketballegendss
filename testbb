@@ -1248,6 +1248,106 @@ BugTab:Button({
 
 
 -- ============================================================
+--  SUGGESTIONS TAB
+-- ============================================================
+local SuggestTab = Window:Tab({
+    Title = "Suggest",
+    Icon  = "solar:lightbulb-bold",
+})
+
+SuggestTab:Section({ Title = "Feature Suggestions" })
+SuggestTab:Section({
+    Title            = "Have an idea for a new feature or improvement? Send it directly to falzzz!",
+    TextSize         = 16,
+    TextTransparency = 0.3,
+    FontWeight       = Enum.FontWeight.Medium,
+})
+
+SuggestTab:Space()
+SuggestTab:Section({ Title = "Guidelines", TextSize = 16, FontWeight = Enum.FontWeight.SemiBold })
+SuggestTab:Section({
+    Title            = "• Be specific about what you want\n• Explain why it would be useful\n• One suggestion per submission is best",
+    TextSize         = 14,
+    TextTransparency = 0.35,
+})
+
+SuggestTab:Space()
+
+local SuggestCategory = SuggestTab:Dropdown({
+    Title  = "Category",
+    Desc   = "What area does your suggestion relate to?",
+    Values = { "Shot / Scoring", "Defense / Guard", "Ball Magnet", "Steal", "Post Aimbot", "UI / Settings", "New Feature", "Other" },
+    Value  = "New Feature",
+    Callback = function() end,
+})
+
+SuggestTab:Space()
+
+local suggestText = ""
+local SuggestInput = SuggestTab:Input({
+    Title       = "Your Suggestion",
+    Type        = "Textarea",
+    Placeholder = "e.g. Add a toggle to auto-dribble left/right when defended closely...",
+    Callback    = function(value)
+        suggestText = value
+    end,
+})
+
+SuggestTab:Space()
+
+SuggestTab:Button({
+    Title     = "Submit Suggestion",
+    Icon      = "solar:star-bold",
+    Color     = Orange,
+    Justify   = "Center",
+    IconAlign = "Left",
+    Callback  = function()
+        if suggestText == "" then
+            Notify({
+                Title   = "Empty Suggestion",
+                Content = "Please write your suggestion before submitting.",
+                Icon    = "solar:lightbulb-bold",
+                Duration = 3,
+            })
+            return
+        end
+
+        local categoryValue = SuggestCategory.Value or "Unspecified"
+        local executor = identifyexecutor and identifyexecutor() or "Unknown"
+        local HttpService = game:GetService("HttpService")
+        local webhookUrl = "https://discord.com/api/webhooks/1488430889024094230/fxQX1QYj_1UVLwI5HxXrvfc6lAy__sQJHr0Z567CsZdAEsBL5Y5wEYpTmGBEbMhFakDo"
+
+        local data = HttpService:JSONEncode({
+            username = "falzzz hub | Suggestion",
+            content  = "**💡 New Suggestion**\n**From:** " .. player.Name
+                .. "\n**Executor:** " .. executor
+                .. "\n**Category:** " .. categoryValue
+                .. "\n**Suggestion:**\n" .. suggestText,
+        })
+
+        pcall(function()
+            request({
+                Url     = webhookUrl,
+                Method  = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body    = data,
+            })
+        end)
+
+        Notify({
+            Title    = "Suggestion Sent!",
+            Content  = "Thanks for the feedback. falzzz will review it!",
+            Icon     = "solar:star-bold",
+            Duration = 4,
+        })
+
+        suggestText = ""
+        SuggestInput:Set("")
+    end,
+})
+
+
+-- ============================================================
 --  SETTINGS TAB
 -- ============================================================
 local SettingsTab = Window:Tab({
