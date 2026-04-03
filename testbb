@@ -1222,7 +1222,7 @@ UnlockTab:Space()
 UnlockTab:Section({
     Title            = isCompatible
         and "All skins and effects are unlocked! Open your inventory in-game to equip them."
-        or  "Your executor is not compatible with Unlock All. Please use Delta, Potassium, Volt, Volcano, Wave or Isaeva.",
+        or  "Your executor is not compatible with Unlock All. Sorry for inconvenience, you should try using Delta, Potassium, Volt, Volcano, Wave or Isaeva.",
     TextSize         = 15,
     TextTransparency = 0.3,
     FontWeight       = Enum.FontWeight.Medium,
@@ -1398,7 +1398,7 @@ local SuggestTab = Window:Tab({
 
 SuggestTab:Paragraph({
     Title     = "Share Your Ideas",
-    Desc      = "Have a feature in mind? Suggestions are reviewed personally by falzzz and the best ones make it into the next update.",
+    Desc      = "Have a feature in mind? Suggestions are reviewed personally by me and the best ones make it into the next update.",
     Image     = "solar:lightbulb-bold",
     ImageSize = 40,
 })
@@ -1414,7 +1414,7 @@ SuggestTab:Section({
 SuggestTab:Space()
 
 SuggestTab:Section({
-    Title            = "✦  Be specific about what you want\n✦  Explain why it would be useful\n✦  One suggestion per submission is best",
+    Title            = "✦  Be specific about what you want\n✦  Explain why it would be useful\n✦  You can make as many suggestions as you want!",
     TextSize         = 14,
     TextTransparency = 0.35,
 })
