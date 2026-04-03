@@ -552,11 +552,28 @@ CreditsTab:Section({
     FontWeight = Enum.FontWeight.Bold,
 })
 
-CreditsTab:Image({
-    Image = "https://tr.rbxcdn.com/180DAY-9050df3f8d131d30af817bb6427a65a6/768/432/Image/Webp/noFilter",
-    AspectRatio = "16:9",
-    Radius = 9,
+CreditsTab:Paragraph({
+    Title     = "falzzz hub",
+    Desc      = "🏀  Basketball Legends  •  v1.0.0\n\nThe most advanced Basketball Legends cheat hub. Built for performance, designed to stay undetected.",
+    Image     = "solar:basketball-bold-duotone",
+    ImageSize = 52,
+    Buttons   = {
+        {
+            Title    = "Copy Discord",
+            Icon     = "solar:copy-bold",
+            Callback = function()
+                setclipboard("eh#3758")
+                Notify({
+                    Title    = "Copied!",
+                    Content  = "eh#3758 copied to clipboard.",
+                    Icon     = "solar:copy-bold",
+                    Duration = 3,
+                })
+            end,
+        },
+    },
 })
+
 
 
 CreditsTab:Space()
