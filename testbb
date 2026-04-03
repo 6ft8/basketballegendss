@@ -725,7 +725,7 @@ ShotTab:Select()
 
 ShotTab:Section({ Title = "Shot Mode" })
 
-local ShotModeDropdown = ShotTab:Dropdown({
+ShotTab:Dropdown({
 
     Flag   = "ShotMode",
     Title  = "Shot Mode",
