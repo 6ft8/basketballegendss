@@ -1522,6 +1522,47 @@ SaveGroup:Button({
     end,
 })
 
+SaveGroup:Space()
+
+SaveGroup:Button({
+    Title     = "Delete Config",
+    Icon      = "solar:trash-bin-trash-bold",
+    Color     = Red,
+    Justify   = "Center",
+    IconAlign = "Left",
+    Callback  = function()
+        if configName == "" or configName == "default" then
+            Notify({
+                Title   = "Cannot Delete",
+                Content = "You can't delete the default config.",
+                Icon    = "solar:shield-warning-bold",
+                Duration = 3,
+            })
+            return
+        end
+        local success = ConfigManager:DeleteConfig(configName)
+        if success then
+            Notify({
+                Title   = "Config Deleted",
+                Content = "'" .. configName .. "' has been deleted.",
+                Icon    = "solar:trash-bin-trash-bold",
+                Duration = 3,
+            })
+            configName = "default"
+            ConfigNameInput:Set("default")
+            ConfigDropdown:Refresh(ConfigManager:AllConfigs())
+        else
+            Notify({
+                Title   = "Delete Failed",
+                Content = "Could not find config '" .. configName .. "'.",
+                Icon    = "solar:shield-warning-bold",
+                Duration = 3,
+            })
+        end
+    end,
+})
+
+
 
 
 -- ============================================================
