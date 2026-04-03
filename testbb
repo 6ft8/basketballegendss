@@ -553,10 +553,11 @@ CreditsTab:Section({
 })
 
 CreditsTab:Image({
-    Image = "rbxassetid://6894234696",
+    Image = "https://tr.rbxcdn.com/180DAY-9050df3f8d131d30af817bb6427a65a6/768/432/Image/Webp/noFilter",
     AspectRatio = "16:9",
     Radius = 9,
 })
+
 
 CreditsTab:Space()
 CreditsTab:Section({
