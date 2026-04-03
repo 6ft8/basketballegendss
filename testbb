@@ -1457,7 +1457,7 @@ SuggestTab:Space()
 
 SuggestTab:Button({
     Title     = "Submit Suggestion",
-    Icon      = "solar:star-bold",
+    Icon      = "solar:plain-2-bold",
     Color     = Orange,
     Justify   = "Center",
     IconAlign = "Left",
