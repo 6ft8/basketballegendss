@@ -802,6 +802,7 @@ MagnetTab:Section({ Title = "Ball Magnet" })
 MagnetTab:Toggle({
     Flag = "MagnetEnabled",
     Title = "Ball Magnet",
+    Icon = "solar:magnet-bold",
     Desc = "Forces ball contact within a customizable radius",
     Value = false,
     Callback = function(value)
@@ -839,6 +840,7 @@ MagnetTab:Section({ Title = "Visual Indicator" })
 MagnetTab:Toggle({
     Flag = "MagnetVisual",
     Title = "Show Range Indicator",
+    Icon = "solar:eye-bold",
     Desc = "Displays a ForceField sphere showing your magnet pickup range",
     Value = false,
     Callback = function(value)
@@ -909,6 +911,7 @@ PostTab:Section({ Title = "Post Aimbot" })
 PostTab:Toggle({
     Flag  = "PostAimbot",
     Title = "Post Aimbot",
+    Icon = "solar:hand-stars-bold",
     Desc  = "Auto-posts nearest opponent when you have the ball",
     Value = false,
     Callback = function(value)
@@ -977,6 +980,7 @@ StealTab:Section({ Title = "Steal Reach" })
 StealTab:Toggle({
     Flag = "StealEnabled",
     Title = "Steal Reach",
+    Icon = "solar:hand-stars-bold",
     Desc = [[
 • Extends your steal hitbox range.
 • Allows steals from farther distances.
@@ -1016,6 +1020,7 @@ StealTab:Section({ Title = "Anti Steal" })
 StealTab:Toggle({
     Flag  = "AntiStealEnabled",
     Title = "Anti Steal",
+    Icon = "solar:shield-bold",
     Desc  = [[Forces ankle break
 on players who attempt to steal. (Blatant)
 ⚠️ Requires: Delta, Potassium, Volt, Volcano, Wave or Isaeva]],
@@ -1062,6 +1067,7 @@ GuardTab:Section({ Title = "Auto Guard" })
 GuardTab:Toggle({
     Flag = "AutoGuard",
     Title = "Auto Guard",
+    Icon = "solar:shield-user-bold",
     Desc = [[
 • Tracks the opponent with the ball.
 • Positions you in front of them automatically.
@@ -1557,6 +1563,7 @@ SettingsTab:Space()
 
 SettingsTab:Toggle({
     Title = "Transparent Background",
+    Icon = "solar:mirror-left-bold",
     Desc  = "Toggle the acrylic/transparent panel effect",
     Value = true,
     Callback = function(v)
@@ -1568,6 +1575,7 @@ SettingsTab:Space()
 SettingsTab:Section({ Title = "Notifications" })
 SettingsTab:Toggle({
     Title = "Enable Notifications",
+    Icon = "solar:bell-bold",
     Desc  = "Toggle all hub notifications on or off",
     Value = true,
     Callback = function(v)
