@@ -715,7 +715,7 @@ local ShotTab = Window:Tab({
     Icon  = "solar:target-bold",
 })
 
-ShotTab:Select()
+CreditsTab:Select()
 
 ShotTab:Section({ Title = "Shot Mode" })
 
