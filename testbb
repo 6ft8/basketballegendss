@@ -1542,15 +1542,16 @@ SaveGroup:Button({
         end
         local success = ConfigManager:DeleteConfig(configName)
         if success then
-            Notify({
-                Title   = "Config Deleted",
-                Content = "'" .. configName .. "' has been deleted.",
-                Icon    = "solar:trash-bin-trash-bold",
-                Duration = 3,
-            })
-            configName = "default"
-            ConfigNameInput:Set("default")
-            ConfigDropdown:Refresh(ConfigManager:AllConfigs())
+    Notify({
+        Title   = "Config Deleted",
+        Content = "'" .. configName .. "' has been deleted.",
+        Icon    = "solar:trash-bin-trash-bold",
+        Duration = 3,
+    })
+    configName = "default"
+    ConfigNameInput:Set("")
+    ConfigDropdown:Refresh(ConfigManager:AllConfigs())
+
         else
             Notify({
                 Title   = "Delete Failed",
