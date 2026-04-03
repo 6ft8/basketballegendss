@@ -1439,7 +1439,7 @@ SuggestTab:Button({
 -- ============================================================
 local ConfigTab = Window:Tab({
     Title = "Config",
-    Icon  = "solar:folder-with-files-bold",
+    Icon  = "solar:server-bold",
 })
 
 local ConfigManager = Window.ConfigManager
