@@ -621,72 +621,103 @@ DestroyGroup:Button({
 -- ============================================================
 local ChangelogTab = Window:Tab({
     Title = "Changelog",
-    Icon = "solar:history-bold",
-
+    Icon  = "solar:clipboard-list-bold",
 })
 
 ChangelogTab:Section({
-    Title      = "Latest Version",
-    TextSize   = 18,
-    FontWeight = Enum.FontWeight.SemiBold,
+    Title      = "What's New",
+    TextSize   = 22,
+    FontWeight = Enum.FontWeight.Bold,
 })
+
 ChangelogTab:Space()
 
-local LatestVersion = ChangelogTab:Section({
-    Title      = "v1.0.0  •  Initial Release",
-    TextSize   = 16,
+local v100 = ChangelogTab:Section({
+    Title     = "v1.0.0  •  Initial Release",
+    TextSize  = 15,
     FontWeight = Enum.FontWeight.Bold,
-    Box        = true,
-    BoxBorder  = true,
-    Opened     = true,
+    Box       = true,
+    BoxBorder = true,
+    Opened    = true,
 })
 
-LatestVersion:Section({
-    Title            = "🟠  New Features",
-    TextSize         = 14,
-    FontWeight       = Enum.FontWeight.SemiBold,
-})
-LatestVersion:Section({
-    Title            = "• Perfect Shot — Perfect, Great & Auto Mix modes",
-    TextSize         = 15,
-    TextTransparency = 0.35,
-})
-LatestVersion:Section({
-    Title            = "• Ball Magnet — pulls the ball towards you",
-    TextSize         = 15,
-    TextTransparency = 0.35,
-})
-LatestVersion:Section({
-    Title            = "• Steal Reach — expands steal reach hitboxes",
-    TextSize         = 15,
-    TextTransparency = 0.35,
-})
-LatestVersion:Section({
-    Title            = "• Anti Steal — Automatically ankle breaks any defender trying to steal the ball from you.",
-    TextSize         = 15,
-    TextTransparency = 0.35,
-})
-LatestVersion:Section({
-    Title            = "• Auto Guard — tracks & guards ball carrier",
-    TextSize         = 15,
-    TextTransparency = 0.35,
-})
-LatestVersion:Section({
-    Title            = "• Post Aimbot — auto posts against nearest opponents accordingly.",
-    TextSize         = 15,
-    TextTransparency = 0.35,
-})
-LatestVersion:Section({
-    Title            = "• Unlock All — unlocks all skins & effects",
-    TextSize         = 15,
-    TextTransparency = 0.35,
-})
-LatestVersion:Section({
-    Title            = "• Bug Report — submit issues and bugs directly to me",
-    TextSize         = 15,
-    TextTransparency = 0.35,
+v100:Section({
+    Title      = "✦  New Features",
+    TextSize   = 14,
+    FontWeight = Enum.FontWeight.SemiBold,
 })
 
+v100:Space()
+
+v100:Paragraph({
+    Title = "Perfect Shot",
+    Desc  = "Perfect, Great and Auto Mix shot modes with adjustable accuracy.",
+    Image = "solar:target-bold",
+    ImageSize = 32,
+})
+
+v100:Space()
+
+v100:Paragraph({
+    Title = "Ball Magnet",
+    Desc  = "Pulls the ball toward you within a customizable radius. Includes visual range indicator.",
+    Image = "solar:magnet-bold",
+    ImageSize = 32,
+})
+
+v100:Space()
+
+v100:Paragraph({
+    Title = "Steal Reach",
+    Desc  = "Expands your steal hitbox so you can steal from further distances.",
+    Image = "solar:hand-stars-bold",
+    ImageSize = 32,
+})
+
+v100:Space()
+
+v100:Paragraph({
+    Title = "Anti Steal",
+    Desc  = "Automatically ankle breaks any defender who tries to steal the ball from you.",
+    Image = "solar:shield-bold",
+    ImageSize = 32,
+})
+
+v100:Space()
+
+v100:Paragraph({
+    Title = "Auto Guard",
+    Desc  = "Tracks and guards the ball carrier automatically with movement prediction.",
+    Image = "solar:shield-user-bold",
+    ImageSize = 32,
+})
+
+v100:Space()
+
+v100:Paragraph({
+    Title = "Post Aimbot",
+    Desc  = "Automatically posts against the nearest opponent when you have the ball.",
+    Image = "solar:dumbbell-bold",
+    ImageSize = 32,
+})
+
+v100:Space()
+
+v100:Paragraph({
+    Title = "Unlock All",
+    Desc  = "Unlocks all skins and effects. Requires a compatible executor.",
+    Image = "solar:lock-keyhole-unlocked-bold",
+    ImageSize = 32,
+})
+
+v100:Space()
+
+v100:Paragraph({
+    Title = "Config System",
+    Desc  = "Save, load and delete your own custom configurations.",
+    Image = "solar:server-bold",
+    ImageSize = 32,
+})
 
 ChangelogTab:Space({ Columns = 3 })
 
@@ -695,15 +726,16 @@ ChangelogTab:Section({
     TextSize   = 18,
     FontWeight = Enum.FontWeight.SemiBold,
 })
+
 ChangelogTab:Space()
 
-ChangelogTab:Dropdown({
-    Title  = "Select Version",
-    Desc   = "View changes from older versions",
-    Values = { "No previous versions yet" },
-    Value  = "No previous versions yet",
-    Callback = function() end,
+ChangelogTab:Section({
+    Title            = "No previous versions yet. Future updates will appear here.",
+    TextSize         = 14,
+    TextTransparency = 0.4,
+    FontWeight       = Enum.FontWeight.Medium,
 })
+
 
 
 
@@ -886,7 +918,7 @@ end
 -- ============================================================
 local PostTab = Window:Tab({
     Title = "Post",
-    Icon  = "solar:target-bold",
+    Icon  = "solar:dumbbell-bold",
 })
 
 PostTab:Section({ Title = "Post Aimbot" })
@@ -894,12 +926,12 @@ PostTab:Section({ Title = "Post Aimbot" })
 PostTab:Toggle({
     Flag  = "PostAimbot",
     Title = "Post Aimbot",
-    Icon = "solar:hand-stars-bold",
+    Icon = "solar:dumbbell-bold",
     Desc  = "Auto-posts nearest opponent when you have the ball",
     Value = false,
     Callback = function(value)
         postAimbotEnabled = value
-        Notify({ Title = "Post Aimbot", Content = value and "Post Aimbot enabled!" or "Post Aimbot disabled!", Icon = "solar:hand-stars-bold", Duration = 2 })
+        Notify({ Title = "Post Aimbot", Content = value and "Post Aimbot enabled!" or "Post Aimbot disabled!", Icon = "solar:dumbbell-bold", Duration = 2 })
 
     end,
 })
@@ -1197,7 +1229,7 @@ UnlockTab:Section({
 -- ============================================================
 local BugTab = Window:Tab({
     Title = "Support",
-    Icon = "solar:bug-bold",
+    Icon = "solar:headphones-round-sound-bold",
 })
 
 BugTab:Section({ Title = "Contact" })
@@ -1218,7 +1250,7 @@ BugTab:Section({
 BugTab:Space()
 BugTab:Button({
     Title = "Copy Discord Username",
-    Icon = "solar:copy-bold",
+    Icon = "solar:headphones-round-sound-bold",
     Justify = "Center",
     IconAlign = "Left",
     Callback = function()
