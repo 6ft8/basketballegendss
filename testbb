@@ -529,6 +529,14 @@ Window:Tag({
     Border = true,
 })
 
+Window:Tag({
+    Title  = "v1.0.0",
+    Icon   = "solar:clock-circle-bold",
+    Color  = Color3.fromHex("#1c1c1c"),
+    Border = true,
+})
+
+
 local notificationsEnabled = true
 local function Notify(data)
     if not notificationsEnabled then return end
@@ -1225,78 +1233,86 @@ UnlockTab:Section({
 
 
 -- ============================================================
--- BUG REPORT TAB
+-- SUPPORT TAB
 -- ============================================================
 local BugTab = Window:Tab({
     Title = "Support",
-    Icon = "solar:headphones-round-sound-bold",
+    Icon  = "solar:headphones-round-sound-bold",
 })
 
-BugTab:Section({ Title = "Contact" })
-BugTab:Section({
-    Title = "You can report bugs or issues directly to me (falzzz) via Discord.",
-    TextSize = 16,
-    TextTransparency = 0.3,
-    FontWeight = Enum.FontWeight.Medium,
-})
-BugTab:Space()
-BugTab:Section({ Title = "Discord", TextSize = 16, FontWeight = Enum.FontWeight.SemiBold })
-BugTab:Section({
-    Title = "Display Name: Falzzz\nUsername: eh#3758",
-    TextSize = 16,
-    TextTransparency = 0.3,
+BugTab:Paragraph({
+    Title     = "Contact falzzz",
+    Desc      = "Found a bug or need help? Reach out directly on Discord.",
+    Image     = "solar:headphones-round-sound-bold",
+    ImageSize = 40,
+    Buttons   = {
+        {
+            Title    = "Copy Username",
+            Icon     = "solar:copy-bold",
+            Callback = function()
+                setclipboard("eh#3758")
+                Notify({
+                    Title    = "Copied!",
+                    Content  = "eh#3758 copied to clipboard.",
+                    Icon     = "solar:copy-bold",
+                    Duration = 3,
+                })
+            end,
+        },
+    },
 })
 
 BugTab:Space()
-BugTab:Button({
-    Title = "Copy Discord Username",
-    Icon = "solar:headphones-round-sound-bold",
-    Justify = "Center",
-    IconAlign = "Left",
-    Callback = function()
-        setclipboard("eh#3758")
-        Notify({
-            Title = "Copied!",
-            Content = "eh#3758 has been copied to your clipboard.",
-            Icon = "solar:copy-bold",
-            Duration = 3,
-        })
-    end,
+
+BugTab:Section({
+    Title            = "Display Name: Falzzz  •  Username: eh#3758",
+    TextSize         = 14,
+    TextTransparency = 0.35,
+    FontWeight       = Enum.FontWeight.Medium,
 })
 
 BugTab:Space({ Columns = 3 })
-BugTab:Section({ Title = "Submit a Bug Report", TextSize = 16, FontWeight = Enum.FontWeight.SemiBold })
+
 BugTab:Section({
-    Title = "Please be as specific as possible. Include what feature broke, what you were doing, and your executor name.",
-    TextSize = 16,
+    Title      = "Submit a Bug Report",
+    TextSize   = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+
+BugTab:Space()
+
+BugTab:Section({
+    Title            = "Please be as specific as possible. Include what feature broke, what you were doing, and your executor name.",
+    TextSize         = 14,
     TextTransparency = 0.35,
 })
+
 BugTab:Space()
 
 local bugReportText = ""
 local BugInput = BugTab:Input({
-    Title = "Bug Report",
-    Type = "Textarea",
+    Title       = "Bug Report",
+    Type        = "Textarea",
     Placeholder = "e.g. Ball Magnet stopped working after enabling Steal Reach on Delta executor because...",
-    Callback = function(value)
+    Callback    = function(value)
         bugReportText = value
-    end
+    end,
 })
 
 BugTab:Space()
 
 BugTab:Button({
-    Title = "Submit Report",
-    Icon = "solar:plain-2-bold",
-    Color = Color3.fromHex("#FF7A30"),
-    Justify = "Center",
+    Title     = "Submit Report",
+    Icon      = "solar:plain-2-bold",
+    Color     = Orange,
+    Justify   = "Center",
     IconAlign = "Left",
-    Callback = function()
+    Callback  = function()
         if bugReportText == "" then
             Notify({
-                Title = "Empty Report",
-                Content = "Please describe the issue before submitting.",
-                Icon = "solar:bug-bold",
+                Title    = "Empty Report",
+                Content  = "Please describe the issue before submitting.",
+                Icon     = "solar:bug-bold",
                 Duration = 3,
             })
             return
@@ -1308,23 +1324,24 @@ BugTab:Button({
 
         local data = HttpService:JSONEncode({
             username = "falzzz hub | Bug Report",
-            content = "**New Bug Report**\n**From:** " .. player.Name .. "\n**Executor:** " .. executor .. "\n**Game:** Basketball Legends\n**Report:**\n" .. bugReportText
-
+            content  = "**New Bug Report**\n**From:** " .. player.Name
+                .. "\n**Executor:** " .. executor
+                .. "\n**Game:** Basketball Legends\n**Report:**\n" .. bugReportText,
         })
 
         pcall(function()
             request({
-                Url = webhookUrl,
-                Method = "POST",
+                Url     = webhookUrl,
+                Method  = "POST",
                 Headers = { ["Content-Type"] = "application/json" },
-                Body = data,
+                Body    = data,
             })
         end)
 
         Notify({
-            Title = "Report Submitted!",
-            Content = "Thanks for the report. We'll look into it!",
-            Icon = "solar:check-circle-bold",
+            Title    = "Report Submitted!",
+            Content  = "Thanks for the report. We'll look into it!",
+            Icon     = "solar:check-circle-bold",
             Duration = 4,
         })
 
@@ -1332,6 +1349,7 @@ BugTab:Button({
         BugInput:Set("")
     end,
 })
+
 
 
 -- ============================================================
@@ -1445,13 +1463,13 @@ local ConfigTab = Window:Tab({
 local ConfigManager = Window.ConfigManager
 local configName = "default"
 
-ConfigTab:Section({ Title = "Configuration" })
-ConfigTab:Section({
-    Title            = "Save and load your hub settings. Each config stores all your toggles, sliders, dropdowns, and keybinds.",
-    TextSize         = 15,
-    TextTransparency = 0.3,
-    FontWeight       = Enum.FontWeight.Medium,
+ConfigTab:Paragraph({
+    Title     = "Configuration Manager",
+    Desc      = "Save your current settings into a named config and reload them anytime. Each config stores all your toggles, sliders, keybinds and dropdowns.",
+    Image     = "solar:server-bold",
+    ImageSize = 40,
 })
+
 
 ConfigTab:Space()
 
