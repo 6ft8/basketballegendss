@@ -593,23 +593,49 @@ CreditsTab:Section({
 })
 CreditsTab:Space({ Columns = 3 })
 
-CreditsTab:Section({ Title = "Credits", TextSize = 18, FontWeight = Enum.FontWeight.SemiBold })
-CreditsTab:Space()
 CreditsTab:Section({
-    Title            = "• Perfect Shot — falzzz\n• Steal Reach & Ball Magnet — falzzz & team\n• Unlock All — falzzz\n• UI — Wind UI by Footagesus",
-    TextSize         = 14,
-    TextTransparency = 0.35,
+    Title      = "Credits",
+    TextSize   = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
 })
-CreditsTab:Space({ Columns = 3 })
 
-CreditsTab:Section({ Title = "Compatible Executors", TextSize = 18, FontWeight = Enum.FontWeight.SemiBold })
 CreditsTab:Space()
-CreditsTab:Section({
-    Title            = "Delta  •  Potassium  •  Volt  •  Volcano  •  Wave  •  Isaeva  •  Xeno  •  Solara  •  Vega X  •  Hydrogen  •  Macsploit",
-    TextSize         = 14,
-    TextTransparency = 0.35,
+
+CreditsTab:Paragraph({
+    Title     = "Perfect Shot",
+    Desc      = "Coded and designed by falzzz",
+    Image     = "solar:target-bold",
+    ImageSize = 36,
 })
-CreditsTab:Space({ Columns = 4 })
+
+CreditsTab:Space()
+
+CreditsTab:Paragraph({
+    Title     = "Steal Reach & Ball Magnet",
+    Desc      = "Coded by falzzz & team",
+    Image     = "solar:hand-stars-bold",
+    ImageSize = 36,
+})
+
+CreditsTab:Space()
+
+CreditsTab:Paragraph({
+    Title     = "Unlock All",
+    Desc      = "Coded by falzzz",
+    Image     = "solar:lock-keyhole-unlocked-bold",
+    ImageSize = 36,
+})
+
+CreditsTab:Space()
+
+CreditsTab:Paragraph({
+    Title     = "UI Library",
+    Desc      = "Wind UI by Footagesus",
+    Image     = "solar:window-frame-bold",
+    ImageSize = 36,
+})
+
+CreditsTab:Space({ Columns = 3 })
 
 local DestroyGroup = CreditsTab:Group({})
 DestroyGroup:Button({
@@ -623,6 +649,7 @@ DestroyGroup:Button({
         Window:Destroy()
     end,
 })
+
 
 -- ============================================================
 -- CHANGELOG TAB
@@ -795,13 +822,21 @@ end,
 
 ShotTab:Space()
 
-ShotTab:Section({ Title = "Keybind" })
+ShotTab:Space()
 
-ShotTab:Keybind({
-    Flag  = "ShootKeybind",
-    Title = "Shot Key",
-    Desc  = "Press this key to trigger a shot at your selected accuracy",
-    Value = "E",
+local ShotKeybindSection = ShotTab:Section({
+    Title     = "Keybind",
+    Box       = true,
+    BoxBorder = true,
+    Opened    = true,
+})
+
+ShotKeybindSection:Keybind({
+    Flag     = "ShootKeybind",
+    Title    = "Shot Key",
+    Icon     = "solar:keyboard-bold",
+    Desc     = "Press this key to trigger a shot at your selected accuracy",
+    Value    = "E",
     Callback = function(keybind)
         Config.ShootKey = Enum.KeyCode[keybind]
         Notify({
@@ -812,6 +847,7 @@ ShotTab:Keybind({
         })
     end,
 })
+
 
 -- ============================================================
 --  BALL MAGNET TAB
@@ -1360,29 +1396,47 @@ local SuggestTab = Window:Tab({
     Icon  = "solar:lightbulb-bold",
 })
 
-SuggestTab:Section({ Title = "Feature Suggestions" })
+SuggestTab:Paragraph({
+    Title     = "Share Your Ideas",
+    Desc      = "Have a feature in mind? Suggestions are reviewed personally by falzzz and the best ones make it into the next update.",
+    Image     = "solar:lightbulb-bold",
+    ImageSize = 40,
+})
+
+SuggestTab:Space({ Columns = 3 })
+
 SuggestTab:Section({
-    Title            = "Have an idea for a new feature or improvement? Send it directly to me (falzzz)!",
-    TextSize         = 16,
-    TextTransparency = 0.3,
-    FontWeight       = Enum.FontWeight.Medium,
+    Title      = "Guidelines",
+    TextSize   = 16,
+    FontWeight = Enum.FontWeight.SemiBold,
 })
 
 SuggestTab:Space()
-SuggestTab:Section({ Title = "Guidelines", TextSize = 16, FontWeight = Enum.FontWeight.SemiBold })
+
 SuggestTab:Section({
-    Title            = "• Be specific about what you want\n• Explain why it would be useful\n• One suggestion per submission is best\n• You can submit as much suggestions as you'd like!",
+    Title            = "✦  Be specific about what you want\n✦  Explain why it would be useful\n✦  One suggestion per submission is best",
     TextSize         = 14,
     TextTransparency = 0.35,
 })
 
-SuggestTab:Space()
+SuggestTab:Space({ Columns = 3 })
 
-local SuggestCategory = SuggestTab:Dropdown({
+local SuggestCategory
+SuggestCategory = SuggestTab:Dropdown({
     Title  = "Category",
+    Icon   = "solar:tag-bold",
     Desc   = "What area does your suggestion relate to?",
-    Values = { "Shot / Scoring", "Defense / Guard", "Ball Magnet", "Steal", "Post Aimbot", "UI / Settings", "New Feature", "Other" },
-    Value  = "New Feature",
+    Values = {
+        "Shot / Scoring",
+        "Defense / Guard",
+        "Ball Magnet",
+        "Steal",
+        "Post Aimbot",
+        "UI / Settings",
+        "New Feature",
+        "Other",
+    },
+    Value    = "New Feature",
     Callback = function() end,
 })
 
@@ -1391,8 +1445,9 @@ SuggestTab:Space()
 local suggestText = ""
 local SuggestInput = SuggestTab:Input({
     Title       = "Your Suggestion",
+    Icon        = "solar:pen-bold",
     Type        = "Textarea",
-    Placeholder = "e.g. Add a toggle to auto-dribble left/right when defended closely...",
+    Placeholder = "e.g. Add a speed boost toggle when dribbling past defenders...",
     Callback    = function(value)
         suggestText = value
     end,
@@ -1402,25 +1457,25 @@ SuggestTab:Space()
 
 SuggestTab:Button({
     Title     = "Submit Suggestion",
-    Icon      = "solar:plain-2-bold",
-    Color     =  Color3.fromHex("#FF7A30"),
+    Icon      = "solar:star-bold",
+    Color     = Orange,
     Justify   = "Center",
     IconAlign = "Left",
     Callback  = function()
         if suggestText == "" then
             Notify({
-                Title   = "Empty Suggestion",
-                Content = "Please write your suggestion before submitting.",
-                Icon    = "solar:lightbulb-bold",
+                Title    = "Empty Suggestion",
+                Content  = "Please write your suggestion before submitting.",
+                Icon     = "solar:lightbulb-bold",
                 Duration = 3,
             })
             return
         end
 
         local categoryValue = SuggestCategory.Value or "Unspecified"
-        local executor = identifyexecutor and identifyexecutor() or "Unknown"
-        local HttpService = game:GetService("HttpService")
-        local webhookUrl = "https://discord.com/api/webhooks/1488430889024094230/fxQX1QYj_1UVLwI5HxXrvfc6lAy__sQJHr0Z567CsZdAEsBL5Y5wEYpTmGBEbMhFakDo"
+        local executor      = identifyexecutor and identifyexecutor() or "Unknown"
+        local HttpService   = game:GetService("HttpService")
+        local webhookUrl    = "https://discord.com/api/webhooks/1488430889024094230/fxQX1QYj_1UVLwI5HxXrvfc6lAy__sQJHr0Z567CsZdAEsBL5Y5wEYpTmGBEbMhFakDo"
 
         local data = HttpService:JSONEncode({
             username = "falzzz hub | Suggestion",
@@ -1441,7 +1496,7 @@ SuggestTab:Button({
 
         Notify({
             Title    = "Suggestion Sent!",
-            Content  = "Thanks for the feedback. falzzz will review it!",
+            Content  = "Thanks! falzzz will review your idea.",
             Icon     = "solar:star-bold",
             Duration = 4,
         })
@@ -1450,6 +1505,7 @@ SuggestTab:Button({
         SuggestInput:Set("")
     end,
 })
+
 
 
 -- ============================================================
