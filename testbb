@@ -4,19 +4,6 @@
 --// Load Wind UI
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
 
--- Get controllers
-local inputController = nil
-local playerController = nil
-
-task.spawn(function()
-    task.wait(3.5)
-    local knit = require(ReplicatedStorage.Packages.Knit)
-    local ok1, ic = pcall(function() return knit.GetController("InputController") end)
-    local ok2, pc = pcall(function() return knit.GetController("PlayerController") end)
-    if ok1 then inputController = ic end
-    if ok2 then playerController = pc end
-end)
-
 
 -- Shot Remote Hook
 task.spawn(function()
@@ -328,11 +315,6 @@ local lastPositions       = {}
 local predictionTime      = 0.3
 local guardDistance       = 10
 local autoGuardPaused     = false
-local blockCooldownEnabled  = false
-local dunkCooldownEnabled   = false
-local antiAnkleEnabled      = false
-local antiFlingEnabled      = false
-local antiPostEnabled       = false
 
 
 local stealBtn = gui.Main.Mobile.Holder.Steal
@@ -1155,71 +1137,6 @@ StealTab:Slider({
 })
 
 
-local stealCooldownEnabled = false
-local inputController = nil
-local playerController = nil
-
-task.spawn(function()
-    task.wait(3.5)
-    local knit = require(ReplicatedStorage.Packages.Knit)
-    local ok1, ic = pcall(function() return knit.GetController("InputController") end)
-    local ok2, pc = pcall(function() return knit.GetController("PlayerController") end)
-    if ok1 then inputController = ic end
-    if ok2 then playerController = pc end
-end)
-
-
-RunService.Heartbeat:Connect(function()
-    local char = player.Character
-    if not char then return end
-
-    if stealCooldownEnabled and inputController then
-        local args = inputController.Args
-        if args then
-            args.StealCD = false
-            args.InAction = false
-        end
-    end
-
-    if blockCooldownEnabled then
-        char:SetAttribute("Blocking", false)
-        char:SetAttribute("PostBlockedCD", false)
-    end
-
-    if dunkCooldownEnabled then
-        char:SetAttribute("DunkCD", false)
-    end
-
-    if antiAnkleEnabled then
-        char:SetAttribute("Broken", false)
-        if playerController and playerController.Args then
-            local humanoid = char:FindFirstChildOfClass("Humanoid")
-            if humanoid and humanoid.WalkSpeed == 0 then
-                playerController:ResetPlayerSpeed()
-            end
-        end
-    end
-
-    if antiPostEnabled then
-        char:SetAttribute("Posting", false)
-        char:SetAttribute("PostBlockedCD", false)
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    if not antiFlingEnabled then return end
-    local char = player.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    if hrp.AssemblyLinearVelocity.Magnitude > 100 then
-        hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-    end
-end)
-
-
-
-
 StealTab:Space()
 StealTab:Section({ Title = "Anti Steal" })
 
@@ -1917,143 +1834,6 @@ player.CharacterAdded:Connect(function(char)
     end
 end)
 
--- ============================================================
---  SELF TAB
--- ============================================================
-local SelfTab = Window:Tab({
-    Title = "Self",
-    Icon  = "solar:shield-user-bold",
-})
-
-SelfTab:Section({ Title = "Cooldown Removal" })
-
-local CooldownSection = SelfTab:Section({
-    Title     = "Remove Cooldowns",
-    Box       = true,
-    BoxBorder = true,
-    Opened    = true,
-})
-
-CooldownSection:Toggle({
-    Flag     = "NoStealCD",
-    Title    = "No Steal Cooldown",
-    Icon     = "solar:hand-stars-bold",
-    Desc     = "Removes the 4 second cooldown between steals.",
-    Value    = false,
-    Callback = function(value)
-        stealCooldownEnabled = value
-        Notify({
-            Title    = "No Steal Cooldown",
-            Content  = value and "Enabled!" or "Disabled!",
-            Icon     = "solar:hand-stars-bold",
-            Duration = 2,
-        })
-    end,
-})
-
-CooldownSection:Space()
-
-CooldownSection:Toggle({
-    Flag     = "NoBlockCD",
-    Title    = "No Block Cooldown",
-    Icon     = "solar:hand-shake-bold",
-    Desc     = "Removes the cooldown between blocks.",
-    Value    = false,
-    Callback = function(value)
-        blockCooldownEnabled = value
-        Notify({
-            Title    = "No Block Cooldown",
-            Content  = value and "Enabled!" or "Disabled!",
-            Icon     = "solar:hand-shake-bold",
-            Duration = 2,
-        })
-    end,
-})
-
-CooldownSection:Space()
-
-CooldownSection:Toggle({
-    Flag     = "NoDunkCD",
-    Title    = "No Dunk Cooldown",
-    Icon     = "solar:basketball-bold-duotone",
-    Desc     = "Removes the cooldown between dunks.",
-    Value    = false,
-    Callback = function(value)
-        dunkCooldownEnabled = value
-        Notify({
-            Title    = "No Dunk Cooldown",
-            Content  = value and "Enabled!" or "Disabled!",
-            Icon     = "solar:basketball-bold-duotone",
-            Duration = 2,
-        })
-    end,
-})
-
-
-SelfTab:Space()
-SelfTab:Section({ Title = "Protection" })
-
-local ProtectionSection = SelfTab:Section({
-    Title     = "Self Protection",
-    Box       = true,
-    BoxBorder = true,
-    Opened    = true,
-})
-
-ProtectionSection:Toggle({
-    Flag     = "AntiAnkle",
-    Title    = "Anti Ankle Breaker",
-    Icon     = "solar:shield-check-bold",
-    Desc     = "Prevents you from getting ankle broken.",
-    Value    = false,
-    Callback = function(value)
-        antiAnkleEnabled = value
-        Notify({
-            Title    = "Anti Ankle Breaker",
-            Content  = value and "Enabled!" or "Disabled!",
-            Icon     = "solar:shield-check-bold",
-            Duration = 2,
-        })
-    end,
-})
-
-ProtectionSection:Space()
-
-ProtectionSection:Toggle({
-    Flag     = "AntiFling",
-    Title    = "Anti Fling",
-    Icon     = "solar:shield-warning-bold",
-    Desc     = "Prevents you from being flung by physics exploits.",
-    Value    = false,
-    Callback = function(value)
-        antiFlingEnabled = value
-        Notify({
-            Title    = "Anti Fling",
-            Content  = value and "Enabled!" or "Disabled!",
-            Icon     = "solar:shield-warning-bold",
-            Duration = 2,
-        })
-    end,
-})
-
-ProtectionSection:Space()
-
-ProtectionSection:Toggle({
-    Flag     = "AntiPost",
-    Title    = "Anti Post",
-    Icon     = "solar:user-block-bold",
-    Desc     = "Prevents opponents from posting on you.",
-    Value    = false,
-    Callback = function(value)
-        antiPostEnabled = value
-        Notify({
-            Title    = "Anti Post",
-            Content  = value and "Enabled!" or "Disabled!",
-            Icon     = "solar:user-block-bold",
-            Duration = 2,
-        })
-    end,
-})
 
 
 -- ============================================================
