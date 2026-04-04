@@ -1768,10 +1768,7 @@ local speedEnabled = false
 local defaultSpeed = 17
 local currentSpeed = 17
 
-SpeedTab:Section({ Title = "Speed Boost" })
-
-SpeedTab:Toggle({
-    local SpeedBoostSection = SpeedTab:Section({
+local SpeedBoostSection = SpeedTab:Section({
     Title     = "Speed Boost",
     Box       = true,
     BoxBorder = true,
