@@ -5,27 +5,6 @@
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
 
 
--- Shot Remote Hook
-task.spawn(function()
-    task.wait(3)
-    local shootRE = ReplicatedStorage.Packages.Knit.Services.ControlService.RE.Shoot
-    local rmt = getrawmetatable(shootRE)
-    local oldNC = rmt.__namecall
-    setreadonly(rmt, false)
-    rmt.__namecall = newcclosure(function(self, ...)
-        local method = getnamecallmethod()
-        if self == shootRE and method == "FireServer" then
-            if not shotHookEnabled then
-                return oldNC(self, ...)
-            end
-            return oldNC(self, currentShotAccuracy)
-        end
-        return oldNC(self, ...)
-    end)
-    setreadonly(rmt, true)
-end)
-
-
 --// Config
 local Config = {
     ShootKey  = Enum.KeyCode.E,
@@ -53,8 +32,6 @@ local contestMeter = gui.Visual.ShotInfo.Contest.Meter
 
 local shotEnabled  = true
 local ShotAccuracy = 1.0
-local currentShotAccuracy = 1.0
-local shotHookEnabled = true
 
 
 local autoMixEnabled    = false
@@ -840,18 +817,14 @@ ShotTab:Dropdown({
     Callback = function(option)
     if option == "Perfect" then
         shotEnabled = true; autoMixEnabled = false
-        ShotAccuracy = 1.0; currentShotAccuracy = 1.0
-        shotHookEnabled = true
+        ShotAccuracy = 1.0; 
     elseif option == "Great" then
         shotEnabled = true; autoMixEnabled = false
         ShotAccuracy = 0.95; currentShotAccuracy = 0.95
-        shotHookEnabled = true
     elseif option == "Auto Mix" then
         shotEnabled = true; autoMixEnabled = true
-        shotHookEnabled = true
     elseif option == "Off" then
         shotEnabled = false; autoMixEnabled = false
-        shotHookEnabled = false
         currentShotAccuracy = 0
     end
     Notify({
