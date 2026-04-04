@@ -4,6 +4,47 @@
 --// Load Wind UI
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
 
+task.spawn(function()
+    task.wait(6)
+    local ok, knit = pcall(function()
+        return require(ReplicatedStorage.Packages.Knit)
+    end)
+    if not ok or not knit then return end
+    local ok2, pc = pcall(function()
+        return knit.GetController("PlayerController")
+    end)
+    if not ok2 or not pc then return end
+    local oldResetSpeed = pc.ResetPlayerSpeed
+    pc.ResetPlayerSpeed = function(self)
+        if speedEnabled then
+            local char = player.Character
+            if char then
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid.WalkSpeed = currentSpeed
+                end
+            end
+        else
+            return oldResetSpeed(self)
+        end
+    end
+    local oldResetInternal = pc.ResetInternalSpeed
+    pc.ResetInternalSpeed = function(self)
+        if speedEnabled then
+            local char = player.Character
+            if char then
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid.WalkSpeed = currentSpeed
+                end
+            end
+        else
+            return oldResetInternal(self)
+        end
+    end
+    print("[falzzz hub] Speed hook active")
+end)
+
 
 --// Config
 local Config = {
@@ -1802,10 +1843,11 @@ SpeedTab:Button({
 player.CharacterAdded:Connect(function(char)
     local humanoid = char:WaitForChild("Humanoid")
     if speedEnabled then
-        task.wait(1)
+        task.wait(3)
         humanoid.WalkSpeed = currentSpeed
     end
 end)
+
 
 
 
