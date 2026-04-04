@@ -5,7 +5,7 @@
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
 
 task.spawn(function()
-    task.wait(6)
+    task.wait(10)
     local ok, knit = pcall(function()
         return require(ReplicatedStorage.Packages.Knit)
     end)
@@ -16,6 +16,7 @@ task.spawn(function()
     if not ok2 or not pc then return end
     local oldResetSpeed = pc.ResetPlayerSpeed
     pc.ResetPlayerSpeed = function(self)
+    print("[falzzz hub] ResetPlayerSpeed intercepted")
         if speedEnabled then
             local char = player.Character
             if char then
