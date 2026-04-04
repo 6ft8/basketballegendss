@@ -4,6 +4,27 @@
 --// Load Wind UI
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
 
+-- Shot Remote Hook
+task.spawn(function()
+    task.wait(3)
+    local shootRE = ReplicatedStorage.Packages.Knit.Services.ControlService.RE.Shoot
+    local rmt = getrawmetatable(shootRE)
+    local oldNC = rmt.__namecall
+    setreadonly(rmt, false)
+    rmt.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        if self == shootRE and method == "FireServer" then
+            if not shotHookEnabled then
+                return oldNC(self, ...)
+            end
+            return oldNC(self, currentShotAccuracy)
+        end
+        return oldNC(self, ...)
+    end)
+    setreadonly(rmt, true)
+end)
+
+
 --// Config
 local Config = {
     ShootKey  = Enum.KeyCode.E,
@@ -31,6 +52,9 @@ local contestMeter = gui.Visual.ShotInfo.Contest.Meter
 
 local shotEnabled  = true
 local ShotAccuracy = 1.0
+local currentShotAccuracy = 1.0
+local shotHookEnabled = true
+
 
 local autoMixEnabled    = false
 
@@ -45,12 +69,17 @@ local function shoot()
     local char = player.Character
     if char and char:FindFirstChild("Basketball") then
         local accuracy
-        accuracy = autoMixEnabled and getAutoMixAccuracy() or ShotAccuracy
-
+        if autoMixEnabled then
+            accuracy = getAutoMixAccuracy()
+        else
+            accuracy = ShotAccuracy
+        end
+        currentShotAccuracy = accuracy
         bar:TweenSize(UDim2.fromScale(1, accuracy), Enum.EasingDirection.Out, Enum.EasingStyle.Linear, Config.TweenTime, true)
         bar.Size = UDim2.fromScale(1, accuracy)
     end
 end
+
 
 
 
@@ -426,18 +455,25 @@ RunService.Heartbeat:Connect(function()
     local now = tick()
     if (now - lastPostUpdate) < postUpdateInterval then return end
     lastPostUpdate = now
-    local char   = player.Character
+    local char = player.Character
     if not char then return end
     local myRoot = char:FindFirstChild("HumanoidRootPart")
     if not myRoot then return end
+    local bodyGyro = myRoot:FindFirstChildOfClass("BodyGyro")
+    if not bodyGyro then return end
     local target = getClosestOpponent()
     if target then
-        local dir        = (target.Position - myRoot.Position).Unit
-        local faceTarget = CFrame.new(myRoot.Position, myRoot.Position + dir)
-        local angle      = detectBallHand() == "left" and 90 or -90
-        myRoot.CFrame    = faceTarget * CFrame.Angles(0, math.rad(angle), 0)
+        local targetPos = Vector3.new(target.Position.X, myRoot.Position.Y, target.Position.Z)
+        local hand = detectBallHand()
+        local offset = hand == "left" and CFrame.Angles(0, math.rad(90), 0) or CFrame.Angles(0, math.rad(-90), 0)
+        bodyGyro.MaxTorque = Vector3.new(0, 1000000, 0)
+        bodyGyro.CFrame = CFrame.lookAt(myRoot.Position, targetPos) * offset
+    else
+        bodyGyro.MaxTorque = Vector3.new(0, 0, 0)
+        bodyGyro.CFrame = CFrame.new(0, 0, 0)
     end
 end)
+
 
 --// ================================
 --// UNLOCK ALL
@@ -801,18 +837,25 @@ ShotTab:Dropdown({
     Value  = "Perfect",
     Callback = function(option)
     if option == "Perfect" then
-        shotEnabled = true; autoMixEnabled = false; ShotAccuracy = 1.0; smartContestEnabled = false
+        shotEnabled = true; autoMixEnabled = false
+        ShotAccuracy = 1.0; currentShotAccuracy = 1.0
+        shotHookEnabled = true
     elseif option == "Great" then
-        shotEnabled = true; autoMixEnabled = false; ShotAccuracy = 0.95; smartContestEnabled = false
+        shotEnabled = true; autoMixEnabled = false
+        ShotAccuracy = 0.95; currentShotAccuracy = 0.95
+        shotHookEnabled = true
     elseif option == "Auto Mix" then
-    shotEnabled = true; autoMixEnabled = true; smartContestEnabled = false
+        shotEnabled = true; autoMixEnabled = true
+        shotHookEnabled = true
     elseif option == "Off" then
-        shotEnabled = false; autoMixEnabled = false; smartContestEnabled = false
+        shotEnabled = false; autoMixEnabled = false
+        shotHookEnabled = false
+        currentShotAccuracy = 0
     end
-        Notify({
-        Title    = "Shot Mode",
-        Content  = "Set to " .. option,
-        Icon     = "solar:target-bold",
+    Notify({
+        Title   = "Shot Mode",
+        Content = "Set to " .. option,
+        Icon    = "solar:target-bold",
         Duration = 2,
     })
 end,
@@ -974,11 +1017,28 @@ PostTab:Toggle({
     Desc  = "Auto-posts nearest opponent when you have the ball",
     Value = false,
     Callback = function(value)
-        postAimbotEnabled = value
-        Notify({ Title = "Post Aimbot", Content = value and "Post Aimbot enabled!" or "Post Aimbot disabled!", Icon = "solar:dumbbell-bold", Duration = 2 })
+    postAimbotEnabled = value
+    if not value then
+        local char = player.Character
+        if char then
+            local myRoot = char:FindFirstChild("HumanoidRootPart")
+            if myRoot then
+                local bodyGyro = myRoot:FindFirstChildOfClass("BodyGyro")
+                if bodyGyro then
+                    bodyGyro.MaxTorque = Vector3.new(0, 0, 0)
+                    bodyGyro.CFrame = CFrame.new(0, 0, 0)
+                end
+            end
+        end
+    end
+    Notify({
+        Title   = "Post Aimbot",
+        Content = value and "Post Aimbot enabled!" or "Post Aimbot disabled!",
+        Icon    = "solar:target-bold",
+        Duration = 2,
+    })
+end,
 
-    end,
-})
 
 PostTab:Space()
 
@@ -1071,6 +1131,47 @@ StealTab:Slider({
         if stealReachEnabled then updateHitboxSizes() end
     end,
 })
+
+StealTab:Space()
+StealTab:Section({ Title = "No Steal Cooldown" })
+
+local stealCooldownEnabled = false
+local inputController = nil
+
+task.spawn(function()
+    task.wait(3)
+    local ok, result = pcall(function()
+        local knit = require(ReplicatedStorage.Packages.Knit)
+        return knit.GetController("InputController")
+    end)
+    if ok then inputController = result end
+end)
+
+StealTab:Toggle({
+    Flag     = "NoStealCD",
+    Title    = "No Steal Cooldown",
+    Icon     = "solar:hand-stars-bold",
+    Desc     = "Removes the 4 second cooldown between steals.",
+    Value    = false,
+    Callback = function(value)
+        stealCooldownEnabled = value
+        Notify({
+            Title    = "No Steal Cooldown",
+            Content  = value and "Steal cooldown removed!" or "Steal cooldown restored!",
+            Icon     = "solar:hand-stars-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+RunService.Heartbeat:Connect(function()
+    if not stealCooldownEnabled then return end
+    if not inputController then return end
+    if inputController.Args then
+        inputController.Args.StealCD = false
+    end
+end)
+
 
 
 StealTab:Space()
@@ -1652,6 +1753,117 @@ SaveGroup:Button({
     end,
 })
 
+
+-- ============================================================
+--  SPEED TAB
+-- ============================================================
+local SpeedTab = Window:Tab({
+    Title = "Speed",
+    Icon  = "solar:running-bold",
+})
+
+local speedEnabled = false
+local defaultSpeed = 17
+local currentSpeed = 17
+
+SpeedTab:Section({ Title = "Speed Boost" })
+
+SpeedTab:Toggle({
+    Flag     = "SpeedEnabled",
+    Title    = "Speed Boost",
+    Icon     = "solar:running-bold",
+    Desc     = "Enables custom walk speed. Keep it subtle to stay safe.",
+    Value    = false,
+    Callback = function(value)
+        speedEnabled = value
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = value and currentSpeed or defaultSpeed
+            end
+        end
+        Notify({
+            Title    = "Speed Boost",
+            Content  = value and "Speed Boost enabled!" or "Speed Boost disabled!",
+            Icon     = "solar:running-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+SpeedTab:Space()
+
+local SpeedSection = SpeedTab:Section({
+    Title     = "Speed Settings",
+    Box       = true,
+    BoxBorder = true,
+    Opened    = true,
+})
+
+SpeedSection:Slider({
+    Flag      = "WalkSpeed",
+    Title     = "Walk Speed",
+    Desc      = [[
+• Default is 17.
+• Keep under 25 for safety.
+• Higher = more obvious.
+]],
+    Step      = 1,
+    IsTooltip = true,
+    IsTextbox = false,
+    Value     = { Min = 17, Max = 35, Default = 17 },
+    Icons     = {
+        From = "solar:walking-bold",
+        To   = "solar:running-bold",
+    },
+    Callback  = function(value)
+        currentSpeed = value
+        if speedEnabled then
+            local char = player.Character
+            if char then
+                local humanoid = char:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid.WalkSpeed = value
+                end
+            end
+        end
+    end,
+})
+
+SpeedTab:Space()
+
+SpeedTab:Button({
+    Title     = "Reset to Default",
+    Icon      = "solar:restart-circle-bold",
+    Justify   = "Center",
+    IconAlign = "Left",
+    Callback  = function()
+        currentSpeed = defaultSpeed
+        speedEnabled = false
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.WalkSpeed = defaultSpeed
+            end
+        end
+        Notify({
+            Title    = "Speed Reset",
+            Content  = "Walk speed restored to default.",
+            Icon     = "solar:restart-circle-bold",
+            Duration = 2,
+        })
+    end,
+})
+
+player.CharacterAdded:Connect(function(char)
+    local humanoid = char:WaitForChild("Humanoid")
+    if speedEnabled then
+        task.wait(1)
+        humanoid.WalkSpeed = currentSpeed
+    end
+end)
 
 
 
