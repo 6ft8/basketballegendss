@@ -5,18 +5,17 @@
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
 
 task.spawn(function()
-    task.wait(10)
-    local ok, knit = pcall(function()
-        return require(ReplicatedStorage.Packages.Knit)
+    task.wait(8)
+    local ok, pc = pcall(function()
+        return require(ReplicatedStorage.Controllers.PlayerController)
     end)
-    if not ok or not knit then return end
-    local ok2, pc = pcall(function()
-        return knit.GetController("PlayerController")
-    end)
-    if not ok2 or not pc then return end
+    if not ok or not pc then 
+        print("[falzzz hub] Speed hook failed")
+        return 
+    end
     local oldResetSpeed = pc.ResetPlayerSpeed
     pc.ResetPlayerSpeed = function(self)
-    print("[falzzz hub] ResetPlayerSpeed intercepted")
+        print("[falzzz hub] ResetPlayerSpeed intercepted")
         if speedEnabled then
             local char = player.Character
             if char then
@@ -45,6 +44,7 @@ task.spawn(function()
     end
     print("[falzzz hub] Speed hook active")
 end)
+
 
 
 --// Config
