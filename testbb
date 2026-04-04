@@ -1155,8 +1155,6 @@ StealTab:Slider({
     end,
 })
 
-StealTab:Space()
-StealTab:Section({ Title = "No Steal Cooldown" })
 
 local stealCooldownEnabled = false
 local inputController = nil
@@ -1171,23 +1169,6 @@ task.spawn(function()
     if ok2 then playerController = pc end
 end)
 
-
-StealTab:Toggle({
-    Flag     = "NoStealCD",
-    Title    = "No Steal Cooldown",
-    Icon     = "solar:hand-stars-bold",
-    Desc     = "Removes the 4 second cooldown between steals.",
-    Value    = false,
-    Callback = function(value)
-        stealCooldownEnabled = value
-        Notify({
-            Title    = "No Steal Cooldown",
-            Content  = value and "Steal cooldown removed!" or "Steal cooldown restored!",
-            Icon     = "solar:hand-stars-bold",
-            Duration = 2,
-        })
-    end,
-})
 
 RunService.Heartbeat:Connect(function()
     local char = player.Character
