@@ -1,3 +1,25 @@
+-- Fix Bypass
+local ok, knit = pcall(function()
+    return require(game:GetService("ReplicatedStorage").Packages.Knit)
+end)
+if ok and knit then
+    task.wait(3.5)
+    local pcOk, playerController = pcall(function()
+        return knit.GetController("PlayerController")
+    end)
+    if pcOk and playerController then
+        for name, connection in pairs(playerController.Connections) do
+            if name == "Speed" or name == "Jump" then
+                pcall(function() connection:Disconnect() end)
+                playerController.Connections[name] = nil
+            end
+        end
+        playerController.Fix = function() end
+        print("[falzzz hub] Fix bypass active")
+    end
+end
+
+
 local RS = game:GetService("ReplicatedStorage")
 local players = game:GetService("Players")
 local knit = require(RS.Packages.Knit)
