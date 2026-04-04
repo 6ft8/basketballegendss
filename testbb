@@ -1771,6 +1771,14 @@ local currentSpeed = 17
 SpeedTab:Section({ Title = "Speed Boost" })
 
 SpeedTab:Toggle({
+    local SpeedBoostSection = SpeedTab:Section({
+    Title     = "Speed Boost",
+    Box       = true,
+    BoxBorder = true,
+    Opened    = true,
+})
+
+SpeedBoostSection:Toggle({
     Flag     = "SpeedEnabled",
     Title    = "Speed Boost",
     Icon     = "solar:running-bold",
@@ -1793,6 +1801,7 @@ SpeedTab:Toggle({
         })
     end,
 })
+
 
 SpeedTab:Space()
 
