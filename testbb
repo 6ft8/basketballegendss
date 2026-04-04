@@ -330,7 +330,6 @@ local guardDistance       = 10
 local autoGuardPaused     = false
 local blockCooldownEnabled  = false
 local dunkCooldownEnabled   = false
-local screenCooldownEnabled = false
 local antiAnkleEnabled      = false
 local antiFlingEnabled      = false
 local antiPostEnabled       = false
@@ -1191,10 +1190,6 @@ RunService.Heartbeat:Connect(function()
         char:SetAttribute("DunkCD", false)
     end
 
-    if screenCooldownEnabled then
-        char:SetAttribute("ScreenCD", false)
-    end
-
     if antiAnkleEnabled then
         char:SetAttribute("Broken", false)
         if playerController and playerController.Args then
@@ -1994,24 +1989,6 @@ CooldownSection:Toggle({
     end,
 })
 
-CooldownSection:Space()
-
-CooldownSection:Toggle({
-    Flag     = "NoScreenCD",
-    Title    = "No Screen Cooldown",
-    Icon     = "solar:shield-bold",
-    Desc     = "Removes the cooldown between screens.",
-    Value    = false,
-    Callback = function(value)
-        screenCooldownEnabled = value
-        Notify({
-            Title    = "No Screen Cooldown",
-            Content  = value and "Enabled!" or "Disabled!",
-            Icon     = "solar:shield-bold",
-            Duration = 2,
-        })
-    end,
-})
 
 SelfTab:Space()
 SelfTab:Section({ Title = "Protection" })
