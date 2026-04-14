@@ -1842,13 +1842,41 @@ SpeedTab:Button({
     end,
 })
 
+local function setupSpeedWatch()
+    local char = player.Character
+    if not char then return end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if not speedEnabled then return end
+        if humanoid.WalkSpeed == 17 then
+            task.wait(0.1)
+            if speedEnabled then
+                humanoid.WalkSpeed = currentSpeed
+            end
+        end
+    end)
+end
+
+setupSpeedWatch()
+
 player.CharacterAdded:Connect(function(char)
     local humanoid = char:WaitForChild("Humanoid")
+    task.wait(3)
     if speedEnabled then
-        task.wait(3)
         humanoid.WalkSpeed = currentSpeed
     end
+    humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+        if not speedEnabled then return end
+        if humanoid.WalkSpeed == 17 then
+            task.wait(0.1)
+            if speedEnabled then
+                humanoid.WalkSpeed = currentSpeed
+            end
+        end
+    end)
 end)
+
 
 
 
