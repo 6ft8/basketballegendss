@@ -1436,7 +1436,7 @@ BugTab:Button({
 
         local executor = identifyexecutor and identifyexecutor() or "Unknown"
         local HttpService = game:GetService("HttpService")
-        local webhookUrl = "https://discord.com/api/webhooks/1488430889024094230/fxQX1QYj_1UVLwI5HxXrvfc6lAy__sQJHr0Z567CsZdAEsBL5Y5wEYpTmGBEbMhFakDo"
+        local webhookUrl = "https://discord.com/api/webhooks/1493762217491824640/8W-akUQA455vhOl30p6exBpBReDEQDK9qqlRAKoP_wjA5QwHvGa8dZJIaH6NU3OnTBTI"
 
         local data = HttpService:JSONEncode({
             username = "falzzz hub | Bug Report",
@@ -1555,7 +1555,7 @@ SuggestTab:Button({
         local categoryValue = SuggestCategory.Value or "Unspecified"
         local executor      = identifyexecutor and identifyexecutor() or "Unknown"
         local HttpService   = game:GetService("HttpService")
-        local webhookUrl    = "https://discord.com/api/webhooks/1488430889024094230/fxQX1QYj_1UVLwI5HxXrvfc6lAy__sQJHr0Z567CsZdAEsBL5Y5wEYpTmGBEbMhFakDo"
+        local webhookUrl    = "https://discord.com/api/webhooks/1493762217491824640/8W-akUQA455vhOl30p6exBpBReDEQDK9qqlRAKoP_wjA5QwHvGa8dZJIaH6NU3OnTBTI"
 
         local data = HttpService:JSONEncode({
             username = "falzzz hub | Suggestion",
