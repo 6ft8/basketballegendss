@@ -1758,13 +1758,15 @@ SpeedBoostSection:Toggle({
     Icon     = "solar:running-bold",
     Desc     = "Enables custom walk speed. Keep it subtle to stay safe.",
     Value    = false,
-    Callback = function(value)
+        Callback = function(value)
         speedEnabled = value
         local char = player.Character
         if char then
             local humanoid = char:FindFirstChildOfClass("Humanoid")
             if humanoid then
-                humanoid.WalkSpeed = value and currentSpeed or defaultSpeed
+                local inGame = player:GetAttribute("Court") ~= nil
+                local safeSpeed = inGame and math.min(currentSpeed, 20) or currentSpeed
+                humanoid.WalkSpeed = value and safeSpeed or defaultSpeed
             end
         end
         Notify({
@@ -1773,6 +1775,15 @@ SpeedBoostSection:Toggle({
             Icon     = "solar:running-bold",
             Duration = 2,
         })
+        if value and player:GetAttribute("Court") ~= nil then
+            task.wait(0.5)
+            Notify({
+                Title   = "⚠️ 5v5 Mode Detected",
+                Content = "Speed is capped at 20 in 5v5 to prevent position resets.",
+                Icon    = "solar:shield-warning-bold",
+                Duration = 5,
+            })
+        end
     end,
 })
 
@@ -1789,11 +1800,13 @@ local SpeedSection = SpeedTab:Section({
 SpeedSection:Slider({
     Flag      = "WalkSpeed",
     Title     = "Walk Speed",
-    Desc      = [[
+        Desc      = [[
 • Default is 17.
-• Keep under 25 for safety.
-• Higher = more obvious.
+• Max 20 in 5v5 to avoid teleporting.
+• Higher values work in Park, 1v1, 2v2, 3v3.
+• Above 20 in 5v5 will cause position resets.
 ]],
+
     Step      = 1,
     IsTooltip = true,
     IsTextbox = false,
@@ -1802,7 +1815,11 @@ SpeedSection:Slider({
         From = "solar:walking-bold",
         To   = "solar:running-bold",
     },
-    Callback  = function(value)
+        Callback  = function(value)
+        local inGame = player:GetAttribute("Court") ~= nil
+        if inGame and value > 20 then
+            value = 20
+        end
         currentSpeed = value
         if speedEnabled then
             local char = player.Character
@@ -1849,10 +1866,12 @@ local function setupSpeedWatch()
     if not humanoid then return end
     humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
         if not speedEnabled then return end
-        if humanoid.WalkSpeed == 17 then
+                if humanoid.WalkSpeed == 17 then
             task.wait(0.1)
             if speedEnabled then
-                humanoid.WalkSpeed = currentSpeed
+                local inGame = player:GetAttribute("Court") ~= nil
+                local safeSpeed = inGame and math.min(currentSpeed, 20) or currentSpeed
+                humanoid.WalkSpeed = safeSpeed
             end
         end
     end)
@@ -1868,10 +1887,12 @@ player.CharacterAdded:Connect(function(char)
     end
     humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
         if not speedEnabled then return end
-        if humanoid.WalkSpeed == 17 then
+                if humanoid.WalkSpeed == 17 then
             task.wait(0.1)
             if speedEnabled then
-                humanoid.WalkSpeed = currentSpeed
+                local inGame = player:GetAttribute("Court") ~= nil
+                local safeSpeed = inGame and math.min(currentSpeed, 20) or currentSpeed
+                humanoid.WalkSpeed = safeSpeed
             end
         end
     end)
