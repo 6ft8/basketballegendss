@@ -1865,13 +1865,12 @@ local function setupSpeedWatch()
     print("[speed watch] WalkSpeed changed to:", humanoid.WalkSpeed)
     if not speedEnabled then return end
 
-                if humanoid.WalkSpeed == 17 then
+                if humanoid.WalkSpeed < currentSpeed then
             task.wait(0.1)
-            if speedEnabled then
-                local inGame = player:GetAttribute("Court") ~= nil
-                local safeSpeed = inGame and math.min(currentSpeed, 20) or currentSpeed
-                humanoid.WalkSpeed = safeSpeed
-            end
+            task.wait(0.05)
+if speedEnabled then
+    humanoid.WalkSpeed = currentSpeed
+end
         end
     end)
 end
@@ -1886,13 +1885,11 @@ player.CharacterAdded:Connect(function(char)
     end
     humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
         if not speedEnabled then return end
-                if humanoid.WalkSpeed == 17 then
-            task.wait(0.1)
-            if speedEnabled then
-                local inGame = player:GetAttribute("Court") ~= nil
-                local safeSpeed = inGame and math.min(currentSpeed, 20) or currentSpeed
-                humanoid.WalkSpeed = safeSpeed
-            end
+                if humanoid.WalkSpeed < currentSpeed then
+            task.wait(0.05)
+if speedEnabled then
+    humanoid.WalkSpeed = currentSpeed
+end
         end
     end)
 end)
