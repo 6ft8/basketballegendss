@@ -1862,7 +1862,9 @@ local function setupSpeedWatch()
     local humanoid = char:FindFirstChildOfClass("Humanoid")
     if not humanoid then return end
     humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-        if not speedEnabled then return end
+    print("[speed watch] WalkSpeed changed to:", humanoid.WalkSpeed)
+    if not speedEnabled then return end
+
                 if humanoid.WalkSpeed == 17 then
             task.wait(0.1)
             if speedEnabled then
