@@ -1801,7 +1801,6 @@ SpeedSection:Slider({
     Flag      = "WalkSpeed",
     Title     = "Walk Speed",
         Desc      = [[
-• Default is 17.
 • Max 20 in 5v5 to avoid teleporting.
 • Higher values work in Park, 1v1, 2v2, 3v3.
 • Above 20 in 5v5 will cause position resets.
@@ -1989,19 +1988,12 @@ SettingsTab:Keybind({
 --  STARTUP POPUP
 -- ============================================================
 
--- Fire 5v5 warning on load if already in a court
-task.spawn(function()
-    task.wait(2) -- wait for attributes to load
-    if player:GetAttribute("Court") ~= nil then
-        Notify({
-            Title    = "⚠️ 5v5 Mode Detected",
-            Content  = "Speed is capped at 20 in 5v5 to prevent position resets.",
-            Icon     = "solar:shield-warning-bold",
-            Duration = 5,
-        })
-    end
-end)
-
+Notify({
+    Title    = "⚠️ 5v5 Warning",
+    Content  = "Speed is capped at 20 in 5v5 to prevent position resets.",
+    Icon     = "solar:shield-warning-bold",
+    Duration = 5,
+})
 
 WindUI:Popup({
     Title   = "falzzz hub",
