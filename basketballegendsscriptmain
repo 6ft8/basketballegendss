@@ -1810,23 +1810,21 @@ SpeedSection:Slider({
     Step      = 1,
     IsTooltip = true,
     IsTextbox = false,
-    Value     = { Min = 17, Max = 35, Default = 17 },
+    Value     = { Min = 17, Max = 35, Default = 20 },
     Icons     = {
         From = "solar:walking-bold",
         To   = "solar:running-bold",
     },
-        Callback  = function(value)
+            Callback  = function(value)
         local inGame = player:GetAttribute("Court") ~= nil
-        if inGame and value > 20 then
-            value = 20
-        end
-        currentSpeed = value
+        local safeSpeed = inGame and math.min(value, 20) or value
+        currentSpeed = safeSpeed
         if speedEnabled then
             local char = player.Character
             if char then
                 local humanoid = char:FindFirstChildOfClass("Humanoid")
                 if humanoid then
-                    humanoid.WalkSpeed = value
+                    humanoid.WalkSpeed = safeSpeed
                 end
             end
         end
@@ -1990,6 +1988,21 @@ SettingsTab:Keybind({
 -- ============================================================
 --  STARTUP POPUP
 -- ============================================================
+
+-- Fire 5v5 warning on load if already in a court
+task.spawn(function()
+    task.wait(2) -- wait for attributes to load
+    if player:GetAttribute("Court") ~= nil then
+        Notify({
+            Title    = "⚠️ 5v5 Mode Detected",
+            Content  = "Speed is capped at 20 in 5v5 to prevent position resets.",
+            Icon     = "solar:shield-warning-bold",
+            Duration = 5,
+        })
+    end
+end)
+
+
 WindUI:Popup({
     Title   = "falzzz hub",
     Icon    = "solar:basketball-bold-duotone",
