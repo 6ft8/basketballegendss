@@ -256,7 +256,6 @@ rmt.__namecall = newcclosure(function(self, ...)
                 for i, v in ipairs(data.Emotes.Inventory) do v[2] = (i == index) end
                 updateCheckmark(item[1])
                 updateViewingFrame("Emotes", item[1])
-                pcall(function() emoteModule:Emote(item[1]) end)
             end
     elseif category == "Skins" then
             local item = data.Skins.Inventory[index]
