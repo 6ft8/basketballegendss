@@ -52,9 +52,15 @@ for itemKey, itemData in pairs(items.Effects) do
     table.insert(ownedEffects, {itemKey, false})
 end
 
+local ownedEmotes = {}
+for itemKey, itemData in pairs(items.Emotes) do
+    table.insert(ownedEmotes, {itemKey, false})
+end
+
 local function reinject()
     data.Skins.Inventory = ownedSkins
     data.Effects.Inventory = ownedEffects
+    data.Emotes.Inventory = ownedEmotes
 end
 reinject()
 
@@ -65,9 +71,13 @@ invUI.UpdateList = function(self)
         for i, v in ipairs(data.Skins.Inventory) do
             v[2] = (v[1] == data.Skins.Equipped)
         end
-    elseif self.CurrentTab == "Effects" then
+   elseif self.CurrentTab == "Effects" then
         for i, v in ipairs(data.Effects.Inventory) do
             v[2] = (v[1] == data.Effects.Equipped)
+        end
+    elseif self.CurrentTab == "Emotes" then
+        for i, v in ipairs(data.Emotes.Inventory) do
+            v[2] = (v[1] == data.Emotes.Equipped)
         end
     end
     return oldUpdateList(self)
@@ -238,7 +248,17 @@ rmt.__namecall = newcclosure(function(self, ...)
                 updateCheckmark(item[1])
                 updateViewingFrame("Effects", item[1])
             end
-        elseif category == "Skins" then
+     elseif category == "Emotes" then
+            local item = data.Emotes.Inventory[index]
+            if item then
+                local emoteModule = require(RS.Controllers.VisualController.Tools.Emotes)
+                data.Emotes.Equipped = item[1]
+                for i, v in ipairs(data.Emotes.Inventory) do v[2] = (i == index) end
+                updateCheckmark(item[1])
+                updateViewingFrame("Emotes", item[1])
+                pcall(function() emoteModule:Emote(item[1]) end)
+            end
+    elseif category == "Skins" then
             local item = data.Skins.Inventory[index]
             if item then
                 currentSkin = item[1]
