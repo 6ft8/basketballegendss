@@ -166,8 +166,10 @@ end)
 --// ANTI STEAL LOGIC
 --// ================================
 local antiStealEnabled = false
-
+local lastAnimTime = 0
 local function playAntiStealAnim()
+    if (tick() - lastAnimTime) < 0.4 then return end
+    lastAnimTime = tick()
     local char = player.Character
     if not char then return end
     local humanoid = char:FindFirstChildOfClass("Humanoid")
@@ -249,11 +251,22 @@ local function startAntiSteal()
     ]])
 end
 
-task.spawn(function()
-    while true do
-        task.wait(0.3)
-        if antiStealEnabled then
-            playAntiStealAnim()
+RunService.Heartbeat:Connect(function()
+    if not antiStealEnabled then return end
+    local char = player.Character
+    if not char then return end
+    if not (char:FindFirstChild("Basketball") and char.Basketball:IsA("Tool")) then return end
+    local myRoot = char:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return end
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            for _, armName in ipairs({"Right Arm","Left Arm","RightHand","LeftHand","RightLowerArm","LeftLowerArm"}) do
+                local arm = plr.Character:FindFirstChild(armName)
+                if arm and (arm.Position - myRoot.Position).Magnitude <= 3.5 then
+                    playAntiStealAnim()
+                    return
+                end
+            end
         end
     end
 end)
