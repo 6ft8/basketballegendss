@@ -163,22 +163,135 @@ player.CharacterAdded:Connect(function()
 end)
 
 --// ================================
---// ANTI STEAL LOGIC
+--// ANTI STEAL LOGIC (Realistic)
 --// ================================
-local antiStealEnabled = false
+local antiStealEnabled   = false
+local antiStealMove      = "Crossover"   -- default move; changed by UI dropdown
+local antiStealCooldown  = 0
+local ANTI_STEAL_CD      = 1.2           -- seconds between triggers
+local STEAL_DETECT_RANGE = 3.5           -- how close an opponent needs to be to their hand / your body
+
+-- Map move names to their animation IDs.
+-- You'll want to replace these placeholder IDs with the real ones
+-- found by scanning the game's AnimationController or LocalScript animations.
+local MOVE_ANIMATIONS = {
+    ["Crossover"] = {L = "rbxassetid://86591859966617", R = "rbxassetid://83841911403520"},
+    ["Hesi"]      = {L = "rbxassetid://85297570743709", R = "rbxassetid://85297570743709"},
+    ["Stepback"]  = {L = "rbxassetid://134621568454567", R = "rbxassetid://134621568454567"},
+}
+-- The dribble directions to fire. We pick one at a time
+-- based on which side the defender is approaching from,
+-- so it looks like a directional response.
+local MOVE_DIRECTIONS = {
+    ["Crossover"]        = {"Left", "Right"},
+    ["Stepback"]         = {"Back"},
+    ["Behind The Back"]  = {"Left", "Right"},
+    ["Hesitation"]       = {"Forward", "Back"},
+    ["Spin"]             = {"Left", "Right"},
+}
+
+local function hasBall()
+    local char = player.Character
+    return char and char:FindFirstChild("Basketball") and char.Basketball:IsA("Tool")
+end
+
+-- Finds the closest opponent whose hand / arm part is within STEAL_DETECT_RANGE
+-- of the local player's HumanoidRootPart. This detects steal attempts without
+-- relying on a remote event or a fixed timer.
+local function findStealThreat()
+    local char = player.Character
+    if not char then return nil end
+    local myRoot = char:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return nil end
+
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            local oppChar = plr.Character
+            -- Only check opponents, not teammates
+            if isOnDifferentTeam(oppChar) then
+                -- Check the right/left hand or arm parts for proximity
+                local armNames = {"Right Arm", "Left Arm", "RightHand", "LeftHand", "RightLowerArm", "LeftLowerArm"}
+                for _, armName in ipairs(armNames) do
+                    local arm = oppChar:FindFirstChild(armName)
+                    if arm then
+                        local dist = (arm.Position - myRoot.Position).Magnitude
+                        if dist <= STEAL_DETECT_RANGE then
+                            return plr, oppChar, arm
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+-- Plays the chosen move animation on the local character's Animator
+local function playMoveAnimation(moveName, side)
+    local char = player.Character
+    if not char then return end
+    local entry = MOVE_ANIMATIONS[moveName]
+    if not entry then return end
+    local animId = (side == "R") and entry.R or entry.L
+
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    local animator = humanoid:FindFirstChildOfClass("Animator")
+    if not animator then return end
+
+    local anim = Instance.new("Animation")
+    anim.AnimationId = animId
+    local track = animator:LoadAnimation(anim)
+    track:Play()
+    anim:Destroy()
+end
+
+-- Fires the dribble remote in a direction that makes sense for the chosen move.
+-- We pick based on which side the threat is approaching from when possible.
+local function fireMoveRemote(moveName, threatArm)
+    local StartDribble = ReplicatedStorage.Packages.Knit.Services.ControlService.RE.StartDribble
+    local dirs = MOVE_DIRECTIONS[moveName] or {"Left", "Right"}
+
+    -- Pick direction based on threat position relative to player if we have arm data
+    if threatArm then
+        local char = player.Character
+        local myRoot = char and char:FindFirstChild("HumanoidRootPart")
+        if myRoot then
+            local localOffset = myRoot.CFrame:ToObjectSpace(CFrame.new(threatArm.Position))
+            -- If threat is on the right, go left (crossover away), and vice versa
+            if localOffset.X > 0 then
+                dirs = {"Left"}
+            else
+                dirs = {"Right"}
+            end
+            -- Stepback always fires Back regardless of side
+            if moveName == "Stepback" then dirs = {"Back"} end
+        end
+    end
+
+    -- Fire 2 rapid inputs to register the move — enough to trigger the ankle break
+    -- without looking like a full direction spam
+    for i = 1, 2 do
+        pcall(function()
+            StartDribble:FireServer(dirs[1])
+        end)
+        task.wait(0.05)
+    end
+end
 
 local function startAntiSteal()
     local actor = player.PlayerScripts:FindFirstChildOfClass("Actor")
     if not actor then return end
     run_on_actor(actor, [[
-        local RS = game:GetService("ReplicatedStorage")
+        local RS     = game:GetService("ReplicatedStorage")
         local Players = game:GetService("Players")
-        local LocalPlayer = Players.LocalPlayer
         local RunService = game:GetService("RunService")
+        local LocalPlayer = Players.LocalPlayer
         require(RS.Packages.Knit)
-        local StartDribble = RS.Packages.Knit.Services.ControlService.RE.StartDribble
 
-        local function muteWorkspaceBallStart()
+        -- Mute the ball pickup sound so the rapid dribble inputs
+        -- don't cause an audible spam when the move triggers
+        local function muteBallSounds()
             for _, v in ipairs(workspace:GetChildren()) do
                 if v.Name == "Basketball" and v:IsA("BasePart") then
                     for _, s in ipairs(v:GetChildren()) do
@@ -186,45 +299,47 @@ local function startAntiSteal()
                     end
                     v.ChildAdded:Connect(function(s)
                         if s:IsA("Sound") and s.Name == "Start" then
-                            task.wait()
-                            s.Volume = 0
+                            task.wait(); s.Volume = 0
                         end
                     end)
                 end
             end
         end
-
         workspace.ChildAdded:Connect(function(v)
             if v.Name == "Basketball" and v:IsA("BasePart") then
-                task.wait(0.05)
-                muteWorkspaceBallStart()
+                task.wait(0.05); muteBallSounds()
             end
         end)
-        muteWorkspaceBallStart()
-
-        local function hasBall()
-            local char = LocalPlayer.Character
-            return char and char:FindFirstChild("Basketball") and char.Basketball:IsA("Tool")
-        end
-
-        local directions = {"Left","Right","Forward","Back"}
-        local dirIndex = 1
-        local lastFire = 0
-        local INTERVAL = 0.05
+        muteBallSounds()
         _G.antiStealActive = true
-
-        RunService.Heartbeat:Connect(function()
-            if not _G.antiStealActive then return end
-            if not hasBall() then return end
-            local now = tick()
-            if (now - lastFire) < INTERVAL then return end
-            lastFire = now
-            local dir = directions[dirIndex]
-            dirIndex = dirIndex % #directions + 1
-            pcall(function() StartDribble:FireServer(dir) end)
-        end)
     ]])
 end
+
+-- Main detection loop — runs on Heartbeat, checks for steal threats,
+-- and only fires when a real threat is detected within range
+RunService.Heartbeat:Connect(function()
+    if not antiStealEnabled then return end
+    if not hasBall() then return end
+
+    local now = tick()
+    if (now - antiStealCooldown) < ANTI_STEAL_CD then return end
+
+    local _, _, threatArm = findStealThreat()
+    if not threatArm then return end
+
+    -- Cooldown is set BEFORE firing so back-to-back triggers can't stack
+    antiStealCooldown = now
+
+    -- Play the visual animation first so it looks like a real dribble move
+    local side = threatArm and threatArm.Name:find("Right") and "R" or "L"
+playMoveAnimation(antiStealMove, side)
+
+    -- Then fire the remote to actually cause the ankle break
+    task.spawn(function()
+        task.wait(0.05)  -- tiny delay so the animation starts visually first
+        fireMoveRemote(antiStealMove, threatArm)
+    end)
+end)
 
 --// ================================
 --// BALL MAGNET LOGIC
@@ -1190,6 +1305,18 @@ on players who attempt to steal. (Blatant)
             Icon     = "solar:shield-bold",
             Duration = 2,
         })
+    end,
+})
+
+StealTab:Dropdown({
+    Flag   = "AntiStealMove",
+    Title  = "Move Type",
+    Icon   = "solar:hand-stars-bold",
+    Desc   = "The dribble move that plays when an ankle break triggers",
+    Values = {"Crossover", "Hesi", "Stepback"},
+    Value  = "Crossover",
+    Callback = function(value)
+        antiStealMove = value
     end,
 })
 
