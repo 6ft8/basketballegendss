@@ -166,31 +166,6 @@ end)
 --// ANTI STEAL LOGIC
 --// ================================
 local antiStealEnabled = false
-local lastAnimTime = 0
-local function playAntiStealAnim()
-    if (tick() - lastAnimTime) < 0.4 then return end
-    lastAnimTime = tick()
-    local char = player.Character
-    if not char then return end
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if not humanoid then return end
-    local animator = humanoid:FindFirstChildOfClass("Animator")
-    if not animator then return end
-
-    local MOVE_ANIMATIONS = {
-        {L = "rbxassetid://86591859966617", R = "rbxassetid://83841911403520"},
-        {L = "rbxassetid://85297570743709", R = "rbxassetid://85297570743709"},
-        {L = "rbxassetid://134621568454567", R = "rbxassetid://134621568454567"},
-    }
-    local entry = MOVE_ANIMATIONS[math.random(1, #MOVE_ANIMATIONS)]
-    local animId = math.random() > 0.5 and entry.R or entry.L
-
-    local anim = Instance.new("Animation")
-    anim.AnimationId = animId
-    local track = animator:LoadAnimation(anim)
-    track:Play()
-    anim:Destroy()
-end
 
 local function startAntiSteal()
     local actor = player.PlayerScripts:FindFirstChildOfClass("Actor")
@@ -232,7 +207,7 @@ local function startAntiSteal()
             return char and char:FindFirstChild("Basketball") and char.Basketball:IsA("Tool")
         end
 
-        local directions = {"Left", "Right", "Forward", "Back"}
+        local directions = {"Left","Right","Forward","Back"}
         local dirIndex = 1
         local lastFire = 0
         local INTERVAL = 0.05
@@ -250,26 +225,6 @@ local function startAntiSteal()
         end)
     ]])
 end
-
-RunService.Heartbeat:Connect(function()
-    if not antiStealEnabled then return end
-    local char = player.Character
-    if not char then return end
-    if not (char:FindFirstChild("Basketball") and char.Basketball:IsA("Tool")) then return end
-    local myRoot = char:FindFirstChild("HumanoidRootPart")
-    if not myRoot then return end
-    for _, plr in pairs(Players:GetPlayers()) do
-        if plr ~= player and plr.Character then
-            for _, armName in ipairs({"Right Arm","Left Arm","RightHand","LeftHand","RightLowerArm","LeftLowerArm"}) do
-                local arm = plr.Character:FindFirstChild(armName)
-                if arm and (arm.Position - myRoot.Position).Magnitude <= 3.5 then
-                    playAntiStealAnim()
-                    return
-                end
-            end
-        end
-    end
-end)
 
 --// ================================
 --// BALL MAGNET LOGIC
@@ -1235,18 +1190,6 @@ on players who attempt to steal. (Blatant)
             Icon     = "solar:shield-bold",
             Duration = 2,
         })
-    end,
-})
-
-StealTab:Dropdown({
-    Flag   = "AntiStealMove",
-    Title  = "Move Type",
-    Icon   = "solar:hand-stars-bold",
-    Desc   = "The dribble move that plays when an ankle break triggers",
-    Values = {"Crossover", "Hesi", "Stepback"},
-    Value  = "Crossover",
-    Callback = function(value)
-        antiStealMove = value
     end,
 })
 
