@@ -207,17 +207,13 @@ local function findStealThreat()
     for _, plr in pairs(Players:GetPlayers()) do
         if plr ~= player and plr.Character then
             local oppChar = plr.Character
-            -- Only check opponents, not teammates
-            if isOnDifferentTeam(oppChar) then
-                -- Check the right/left hand or arm parts for proximity
-                local armNames = {"Right Arm", "Left Arm", "RightHand", "LeftHand", "RightLowerArm", "LeftLowerArm"}
-                for _, armName in ipairs(armNames) do
-                    local arm = oppChar:FindFirstChild(armName)
-                    if arm then
-                        local dist = (arm.Position - myRoot.Position).Magnitude
-                        if dist <= STEAL_DETECT_RANGE then
-                            return plr, oppChar, arm
-                        end
+            local armNames = {"Right Arm", "Left Arm", "RightHand", "LeftHand", "RightLowerArm", "LeftLowerArm"}
+            for _, armName in ipairs(armNames) do
+                local arm = oppChar:FindFirstChild(armName)
+                if arm then
+                    local dist = (arm.Position - myRoot.Position).Magnitude
+                    if dist <= STEAL_DETECT_RANGE then
+                        return plr, oppChar, arm
                     end
                 end
             end
