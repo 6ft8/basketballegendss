@@ -127,10 +127,16 @@ run_on_actor(getactors()[1], [[
         table.insert(ownedEffects, {itemKey, false})
     end
 
-    local function reinject()
-        data.Skins.Inventory = ownedSkins
-        data.Effects.Inventory = ownedEffects
-    end
+    local ownedEmotes = {}
+for itemKey, itemData in pairs(items.Emotes) do
+    table.insert(ownedEmotes, {itemKey, false})
+end
+
+   local function reinject()
+    data.Skins.Inventory = ownedSkins
+    data.Effects.Inventory = ownedEffects
+    data.Emotes.Inventory = ownedEmotes
+end
     reinject()
 
     print(">> Injected " .. #ownedSkins .. " skins and " .. #ownedEffects .. " effects!")
@@ -145,6 +151,10 @@ run_on_actor(getactors()[1], [[
         elseif self.CurrentTab == "Effects" then
             for i, v in ipairs(data.Effects.Inventory) do
                 v[2] = (v[1] == data.Effects.Equipped)
+            end
+        elseif self.CurrentTab == "Emotes" then
+            for i, v in ipairs(data.Emotes.Inventory) do
+                v[2] = (v[1] == data.Emotes.Equipped)
             end
         end
         return oldUpdateList(self)
@@ -323,6 +333,15 @@ end
                     data.Effects.Equipped = item[1]
                     updateCheckmark(item[1])
                     updateViewingFrame("Effects", item[1])
+                end
+
+            elseif category == "Emotes" then
+                local item = data.Emotes.Inventory[index]
+                if item then
+                    data.Emotes.Equipped = item[1]
+                    for i, v in ipairs(data.Emotes.Inventory) do v[2] = (i == index) end
+                    updateCheckmark(item[1])
+                    updateViewingFrame("Emotes", item[1])
                 end
             elseif category == "Skins" then
                 local item = data.Skins.Inventory[index]
