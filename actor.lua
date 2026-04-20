@@ -1,3 +1,46 @@
+task.spawn(function()
+    local RS = game:GetService("ReplicatedStorage")
+
+    local ok, knit = pcall(function()
+        return require(RS.Packages.Knit)
+    end)
+
+    if ok and knit then
+        task.wait(3.5)
+
+        local pcOk, playerController = pcall(function()
+            return knit.GetController("PlayerController")
+        end)
+
+        if pcOk and playerController then
+
+            -- Instead of removing connections, override behavior
+            if playerController.Fix then
+                local oldFix = playerController.Fix
+
+                playerController.Fix = function(...)
+                    -- do nothing (block correction)
+                    return
+                end
+            end
+
+            -- OPTIONAL: soft-block speed/jump handlers
+            if playerController.Connections then
+                for name, connection in pairs(playerController.Connections) do
+                    if name == "Speed" or name == "Jump" then
+                        -- don’t delete it, just disable safely
+                        pcall(function()
+                            connection:Disable()
+                        end)
+                    end
+                end
+            end
+
+            print(">> Soft bypass applied (less detectable)")
+        end
+    end
+end)
+
 -- Mute real server side effect sounds on startup
 local RS = game:GetService("ReplicatedStorage")
 
