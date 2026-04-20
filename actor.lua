@@ -1,3 +1,4 @@
+--// FIX BYPASS (from Script 1, cleaned)
 task.spawn(function()
     local RS = game:GetService("ReplicatedStorage")
 
@@ -12,31 +13,22 @@ task.spawn(function()
             return knit.GetController("PlayerController")
         end)
 
-        if pcOk and playerController then
+        if pcOk and playerController and playerController.Connections then
+            for name, connection in pairs(playerController.Connections) do
+                if name == "Speed" or name == "Jump" then
+                    pcall(function()
+                        connection:Disconnect()
+                    end)
+                    playerController.Connections[name] = nil
+                end
+            end
 
-            -- Instead of removing connections, override behavior
+            -- Disable internal fix function safely
             if playerController.Fix then
-                local oldFix = playerController.Fix
-
-                playerController.Fix = function(...)
-                    -- do nothing (block correction)
-                    return
-                end
+                playerController.Fix = function() end
             end
 
-            -- OPTIONAL: soft-block speed/jump handlers
-            if playerController.Connections then
-                for name, connection in pairs(playerController.Connections) do
-                    if name == "Speed" or name == "Jump" then
-                        -- don’t delete it, just disable safely
-                        pcall(function()
-                            connection:Disable()
-                        end)
-                    end
-                end
-            end
-
-            print(">> Soft bypass applied (less detectable)")
+            print(">> Fix bypass injected (Speed/Jump disabled)")
         end
     end
 end)
