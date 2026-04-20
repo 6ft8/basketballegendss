@@ -203,17 +203,6 @@ end
 
 local oldEffect = visuals.Effect
 
-    visuals.Effect = function(self, effect, ...)
-        local args = {...}
-        if effect == "StartBallEffect" or effect == "BallEffect" then
-            print("[" .. effect .. "]")
-            for i, v in ipairs(args) do
-                print("  arg"..i, typeof(v), tostring(v))
-            end
-        end
-        return oldEffect(self, effect, ...)
-    end
-
 visuals.Effect = function(self, effect, ...)
     local args = {...}
     if effect == "StartBallEffect" then
