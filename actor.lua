@@ -303,5 +303,15 @@ if character then character.ChildAdded:Connect(onBallAdded) end
 localPlayer.CharacterAdded:Connect(function(newChar)
     newChar.ChildAdded:Connect(onBallAdded)
 end)
+for k, v in pairs(visuals) do
+    if type(v) == "function" then
+        local old = v
+        visuals[k] = function(self, ...)
+            print("[VisualController." .. k .. "] called", ...)
+            return old(self, ...)
+        end
+    end
+end
+print("Visual controller fully hooked inside actor — go score in 5v5")
 
 print("Unlock All loaded!")
