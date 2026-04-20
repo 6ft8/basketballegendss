@@ -363,6 +363,42 @@ end
         return oldNC(self, ...)
     end)
     setreadonly(rmt, true)
+local anims = RS.Assets.Animations_R15
+local currentEmoteTrack = nil
+
+local emoteRE = RS.Packages.Knit.Services.ControlService.RE.Emote
+local emoteRmt = getrawmetatable(emoteRE)
+local oldEmoteNC = emoteRmt.__namecall
+setreadonly(emoteRmt, false)
+emoteRmt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    if self == emoteRE and method == "FireServer" then
+        local equippedEmote = data.Emotes.Equipped
+        if equippedEmote and equippedEmote ~= "None" and equippedEmote ~= "Default" then
+            local animObj = anims:FindFirstChild("Dance_" .. equippedEmote)
+                        or anims:FindFirstChild("DanceExtra_" .. equippedEmote)
+            if animObj then
+                local char = localPlayer.Character
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                local animator = hum and hum:FindFirstChildOfClass("Animator")
+                if animator then
+                    if currentEmoteTrack then
+                        currentEmoteTrack:Stop()
+                        currentEmoteTrack = nil
+                    end
+                    local track = animator:LoadAnimation(animObj)
+                    track:Play()
+                    currentEmoteTrack = track
+                end
+                return -- don't fire server
+            end
+        end
+    end
+    return oldEmoteNC(self, ...)
+end)
+setreadonly(emoteRmt, true)
+
+
 local emoteRE = RS.Packages.Knit.Services.ControlService.RE.Emote
 local emoteRmt = getrawmetatable(emoteRE)
 local oldEmoteNC = emoteRmt.__namecall
