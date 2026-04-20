@@ -2006,3 +2006,22 @@ WindUI:Popup({
         },
     },
 })
+
+task.spawn(function()
+    task.wait(4)
+    local RS = game:GetService("ReplicatedStorage")
+    local knit = require(RS.Packages.Knit)
+    local visuals = knit.GetController("VisualController")
+    
+    -- Hook every single function on the visuals controller
+    for k, v in pairs(visuals) do
+        if type(v) == "function" then
+            local old = v
+            visuals[k] = function(self, ...)
+                print("[VisualController." .. k .. "] called", ...)
+                return old(self, ...)
+            end
+        end
+    end
+    print("Visual controller fully hooked — go score in 5v5")
+end)
