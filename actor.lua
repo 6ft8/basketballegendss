@@ -360,6 +360,22 @@ end
         return oldNC(self, ...)
     end)
     setreadonly(rmt, true)
+local emoteRE = RS.Packages.Knit.Services.ControlService.RE.Emote
+local emoteRmt = getrawmetatable(emoteRE)
+local oldEmoteNC = emoteRmt.__namecall
+setreadonly(emoteRmt, false)
+emoteRmt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    if self == emoteRE and method == "FireServer" then
+        local equippedEmote = data.Emotes.Equipped
+        if equippedEmote then
+            return oldEmoteNC(self, equippedEmote)
+        end
+    end
+    return oldEmoteNC(self, ...)
+end)
+setreadonly(emoteRmt, true)
+
 
     local function getMyWorkspaceBall()
         for i,v in next, workspace:GetChildren() do
