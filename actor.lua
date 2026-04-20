@@ -336,13 +336,16 @@ end
                 end
 
             elseif category == "Emotes" then
-                local item = data.Emotes.Inventory[index]
-                if item then
-                    data.Emotes.Equipped = item[1]
-                    for i, v in ipairs(data.Emotes.Inventory) do v[2] = (i == index) end
-                    updateCheckmark(item[1])
-                    updateViewingFrame("Emotes", item[1])
-                end
+    local item = data.Emotes.Inventory[index]
+    if item then
+        data.Emotes.Equipped = item[1]
+        for i, v in ipairs(data.Emotes.Inventory) do v[2] = (i == index) end
+        updateCheckmark(item[1])
+        updateViewingFrame("Emotes", item[1])
+        -- Actually tell the server so the emote button works
+        return oldNC(self, "Emotes", index)
+    end
+
             elseif category == "Skins" then
                 local item = data.Skins.Inventory[index]
                 if item then
