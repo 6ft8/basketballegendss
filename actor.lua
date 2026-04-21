@@ -365,54 +365,47 @@ end
     setreadonly(rmt, true)
 local anims = RS.Assets.Animations_R15
 local currentEmoteTrack = nil
+local knit2 = require(RS.Packages.Knit)
+local ic = knit2.GetController("InputController")
 
-local emoteRE = RS.Packages.Knit.Services.ControlService.RE.Emote
-local emoteRmt = getrawmetatable(emoteRE)
-local oldEmoteNC = emoteRmt.__namecall
-setreadonly(emoteRmt, false)
-emoteRmt.__namecall = newcclosure(function(self, ...)
-    local method = getnamecallmethod()
-    if self == emoteRE and method == "FireServer" then
+if ic and ic.Emote then
+    local oldEmote = ic.Emote
+    ic.Emote = function(self, ...)
         local equippedEmote = data.Emotes.Equipped
         if equippedEmote and equippedEmote ~= "None" and equippedEmote ~= "Default" then
-            local animObj = anims:FindFirstChild("Dance_" .. equippedEmote)
-                        or anims:FindFirstChild("DanceExtra_" .. equippedEmote)
             local extraData = items.Emotes[equippedEmote] and items.Emotes[equippedEmote][4]
-if extraData and extraData.PropDuration then
-    Notify({
-        Title    = "Prop Emote",
-        Content  = "This emote uses a prop that requires ownership to display.",
-        Icon     = "solar:shield-warning-bold",
-        Duration = 4,
-    })
-end
-if animObj then
-
+            if extraData and extraData.PropDuration then
+                Notify({
+                    Title    = "Prop Emote",
+                    Content  = "This emote uses a prop that requires ownership to display.",
+                    Icon     = "solar:shield-warning-bold",
+                    Duration = 4,
+                })
+            end
+            local animObj = anims:FindFirstChild("Dance_" .. equippedEmote)
+                         or anims:FindFirstChild("DanceExtra_" .. equippedEmote)
+            if animObj then
                 local char = localPlayer.Character
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
                 local animator = hum and hum:FindFirstChildOfClass("Animator")
                 if animator then
                     if currentEmoteTrack and currentEmoteTrack.IsPlaying then
-    currentEmoteTrack:Stop()
-    currentEmoteTrack = nil
-    return
-end
-if currentEmoteTrack then
-    currentEmoteTrack = nil
-end
-local track = animator:LoadAnimation(animObj)
-track:Play()
-currentEmoteTrack = track
+                        currentEmoteTrack:Stop()
+                        currentEmoteTrack = nil
+                        return
+                    end
+                    if currentEmoteTrack then currentEmoteTrack = nil end
+                    local track = animator:LoadAnimation(animObj)
+                    track:Play()
+                    currentEmoteTrack = track
                 end
-                                -- let the call through silently so the game's internal flow doesn't crash
-                return oldEmoteNC(self)
-
+                return oldEmote(self, ...)
             end
         end
+        return oldEmote(self, ...)
     end
-    return oldEmoteNC(self, ...)
-end)
-setreadonly(emoteRmt, true)
+end
+
 
 
     local function getMyWorkspaceBall()
