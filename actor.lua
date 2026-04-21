@@ -377,7 +377,17 @@ emoteRmt.__namecall = newcclosure(function(self, ...)
         if equippedEmote and equippedEmote ~= "None" and equippedEmote ~= "Default" then
             local animObj = anims:FindFirstChild("Dance_" .. equippedEmote)
                         or anims:FindFirstChild("DanceExtra_" .. equippedEmote)
-            if animObj then
+            local extraData = items.Emotes[equippedEmote] and items.Emotes[equippedEmote][4]
+if extraData and extraData.PropDuration then
+    Notify({
+        Title    = "Prop Emote",
+        Content  = "This emote uses a prop that requires ownership to display.",
+        Icon     = "solar:shield-warning-bold",
+        Duration = 4,
+    })
+end
+if animObj then
+
                 local char = localPlayer.Character
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
                 local animator = hum and hum:FindFirstChildOfClass("Animator")
