@@ -382,13 +382,17 @@ emoteRmt.__namecall = newcclosure(function(self, ...)
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
                 local animator = hum and hum:FindFirstChildOfClass("Animator")
                 if animator then
-                    if currentEmoteTrack then
-                        currentEmoteTrack:Stop()
-                        currentEmoteTrack = nil
-                    end
-                    local track = animator:LoadAnimation(animObj)
-                    track:Play()
-                    currentEmoteTrack = track
+                    if currentEmoteTrack and currentEmoteTrack.IsPlaying then
+    currentEmoteTrack:Stop()
+    currentEmoteTrack = nil
+    return
+end
+if currentEmoteTrack then
+    currentEmoteTrack = nil
+end
+local track = animator:LoadAnimation(animObj)
+track:Play()
+currentEmoteTrack = track
                 end
                 return -- don't fire server
             end
