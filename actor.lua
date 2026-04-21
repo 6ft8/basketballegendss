@@ -377,8 +377,13 @@ emoteRmt.__namecall = newcclosure(function(self, ...)
         if equippedEmote and equippedEmote ~= "None" and equippedEmote ~= "Default" then
             local animObj = anims:FindFirstChild("Dance_" .. equippedEmote)
                         or anims:FindFirstChild("DanceExtra_" .. equippedEmote)
-            if animObj then
-                local char = localPlayer.Character
+            local extraData = items.Emotes[equippedEmote] and items.Emotes[equippedEmote][4]
+if extraData and extraData.PropDuration then
+    EmotePropAlert:Fire()
+end
+if animObj then
+    local char = localPlayer.Character
+
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
                 local animator = hum and hum:FindFirstChildOfClass("Animator")
                 if animator then
