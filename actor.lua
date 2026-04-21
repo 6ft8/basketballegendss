@@ -404,7 +404,9 @@ local track = animator:LoadAnimation(animObj)
 track:Play()
 currentEmoteTrack = track
                 end
-                return -- don't fire server
+                                -- let the call through silently so the game's internal flow doesn't crash
+                return oldEmoteNC(self)
+
             end
         end
     end
