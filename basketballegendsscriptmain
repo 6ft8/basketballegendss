@@ -534,6 +534,17 @@ local Red    = Color3.fromHex("#EF4F1D")
 local Yellow = Color3.fromHex("#ECA201")
 local Cyan   = Color3.fromHex("#00D4FF")
 
+local EmotePropAlert = Instance.new("BindableEvent")
+EmotePropAlert.Event:Connect(function()
+    Notify({
+        Title    = "Prop Emote",
+        Content  = "This emote uses a prop that requires ownership to display.",
+        Icon     = "solar:shield-warning-bold",
+        Duration = 4,
+    })
+end)
+
+
 local notificationsEnabled = true
 local function Notify(data)
     if not notificationsEnabled then return end
