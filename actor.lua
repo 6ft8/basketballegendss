@@ -365,46 +365,47 @@ end
     setreadonly(rmt, true)
 local anims = RS.Assets.Animations_R15
 local currentEmoteTrack = nil
-local knit2 = require(RS.Packages.Knit)
-local ic = knit2.GetController("InputController")
 
-if ic and ic.Emote then
-    local oldEmote = ic.Emote
-    ic.Emote = function(self, ...)
+local uic = knit.GetController("UIController")
+local emoteBtn = localPlayer.PlayerGui.Main.Mobile.Holder:FindFirstChild("Emote")
+    or localPlayer.PlayerGui.Main.Mobile:FindFirstChild("Emote")
+
+if emoteBtn then
+    emoteBtn.Activated:Connect(function()
         local equippedEmote = data.Emotes.Equipped
-        if equippedEmote and equippedEmote ~= "None" and equippedEmote ~= "Default" then
-            local extraData = items.Emotes[equippedEmote] and items.Emotes[equippedEmote][4]
-            if extraData and extraData.PropDuration then
-                Notify({
-                    Title    = "Prop Emote",
-                    Content  = "This emote uses a prop that requires ownership to display.",
-                    Icon     = "solar:shield-warning-bold",
-                    Duration = 4,
-                })
-            end
-            local animObj = anims:FindFirstChild("Dance_" .. equippedEmote)
-                         or anims:FindFirstChild("DanceExtra_" .. equippedEmote)
-            if animObj then
-                local char = localPlayer.Character
-                local hum = char and char:FindFirstChildOfClass("Humanoid")
-                local animator = hum and hum:FindFirstChildOfClass("Animator")
-                if animator then
-                    if currentEmoteTrack and currentEmoteTrack.IsPlaying then
-                        currentEmoteTrack:Stop()
-                        currentEmoteTrack = nil
-                        return
-                    end
-                    if currentEmoteTrack then currentEmoteTrack = nil end
-                    local track = animator:LoadAnimation(animObj)
-                    track:Play()
-                    currentEmoteTrack = track
-                end
-                return oldEmote(self, ...)
-            end
+        if not equippedEmote or equippedEmote == "None" or equippedEmote == "Default" then return end
+
+        local extraData = items.Emotes[equippedEmote] and items.Emotes[equippedEmote][4]
+        if extraData and extraData.PropDuration then
+            Notify({
+                Title    = "Prop Emote",
+                Content  = "This emote uses a prop that requires ownership to display.",
+                Icon     = "solar:shield-warning-bold",
+                Duration = 4,
+            })
         end
-        return oldEmote(self, ...)
-    end
+
+        local animObj = anims:FindFirstChild("Dance_" .. equippedEmote)
+                     or anims:FindFirstChild("DanceExtra_" .. equippedEmote)
+        if not animObj then return end
+
+        local char = localPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        local animator = hum and hum:FindFirstChildOfClass("Animator")
+        if not animator then return end
+
+        if currentEmoteTrack and currentEmoteTrack.IsPlaying then
+            currentEmoteTrack:Stop()
+            currentEmoteTrack = nil
+            return
+        end
+        if currentEmoteTrack then currentEmoteTrack = nil end
+        local track = animator:LoadAnimation(animObj)
+        track:Play()
+        currentEmoteTrack = track
+    end)
 end
+
 
 
 
