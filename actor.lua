@@ -65,37 +65,6 @@ run_on_actor(getactors()[1], [[
     local uiController = knit.GetController("UIController")
     local invUI = uiController.UIs.Inventory
 
-    -- ============================================================
--- BLOCK EFFECT REMOTE (Server -> Client)
--- ============================================================
-local effectRE = RS.Packages.Knit.Services.EconomyService.RE.Effect
-if effectRE then
-    -- Disconnect all existing OnClientEvent connections (prevents server from triggering effects)
-    local connections = getconnections(effectRE.OnClientEvent)
-    if connections then
-        for _, c in ipairs(connections) do
-            pcall(function() c:Disconnect() end)
-        end
-        print("[Actor] Disconnected " .. #connections .. " effect remote connections")
-    end
-    
-    -- Block FireServer (client->server) to prevent sending effect updates
-    local rmt = getrawmetatable(effectRE)
-    if rmt then
-        local oldNC = rmt.__namecall
-        setreadonly(rmt, false)
-        rmt.__namecall = newcclosure(function(self, ...)
-            if self == effectRE and getnamecallmethod() == "FireServer" then
-                print("[Actor] Blocked Effect FireServer")
-                return
-            end
-            return oldNC(self, ...)
-        end)
-        setreadonly(rmt, true)
-    end
-    print("[Actor] Effect remote blocked")
-end
-
     local function getCharacter()
         return localPlayer.Character
     end
@@ -122,34 +91,25 @@ end
     -- Permanently mute ALL sounds on our basketball Attach every heartbeat
     -- This catches any cloned sounds the server fires for our real effect
     local RunService = game:GetService("RunService")
-    -- ============================================================
--- STRONGER AUDIO MUTE (Hooks Play function)
--- ============================================================
-RunService.Heartbeat:Connect(function()
-    local char = getCharacter()
-    if not char then return end
-    local bball = char:FindFirstChild("Basketball")
-    if not bball then return end
-    local attach = bball:FindFirstChild("Attach")
-    if not attach then return end
-    
-    -- Mute all sounds and prevent them from ever playing
-    local function muteAllSounds(parent)
-        for _, v in pairs(parent:GetDescendants()) do
-            if v:IsA("Sound") then
-                if v.Volume ~= 0 then
-                    v.Volume = 0
-                end
-                pcall(function()
-                    hookfunction(v.Play, function() return end)
-                end)
+    RunService.Heartbeat:Connect(function()
+        local char = getCharacter()
+        if not char then return end
+        local bball = char:FindFirstChild("Basketball")
+        if not bball then return end
+        local attach = bball:FindFirstChild("Attach")
+        if not attach then return end
+        for _, v in pairs(attach:GetChildren()) do
+            if v:IsA("Sound") and v.Volume > 0 then
+                v.Volume = 0
             end
         end
-    end
-    
-    muteAllSounds(attach)
-    muteAllSounds(bball)
-end)
+        -- Also check descendants in case sounds are nested deeper
+        for _, v in pairs(attach:GetDescendants()) do
+            if v:IsA("Sound") and v.Volume > 0 then
+                v.Volume = 0
+            end
+        end
+    end)
 
     local function WaitForChildWhichIsA(self, ClassName)
         while self:FindFirstChildWhichIsA(ClassName) == nil do
@@ -329,28 +289,26 @@ end
         end
     end
 
-   -- ============================================================
--- HARDENED VISUAL EFFECT BLOCK
--- ============================================================
-local oldEffect = visuals.Effect
+    local oldEffect = visuals.Effect
 visuals.Effect = function(self, effect, ...)
     local args = {...}
-    
-    -- Block StartBallEffect and BallEffect completely
-    if effect == "StartBallEffect" or effect == "BallEffect" then
-        -- Use your equipped effect instead of server effect
-        local myEffect = data.Effects and data.Effects.Equipped
-        if myEffect and myEffect ~= "None" then
-            print("[Actor] Blocked server effect '" .. tostring(effect) .. "', using local: " .. myEffect)
-            -- Apply your effect with the same arguments
-            return oldEffect(self, effect, myEffect, args[2], args[3], args[4], args[5])
-        else
-            print("[Actor] Blocked server effect (no local effect)")
-            return
+    if effect == "StartBallEffect" then
+        local hrp = args[3]
+        local liveChar = getCharacter()
+        local myHRP = liveChar and liveChar:FindFirstChild("HumanoidRootPart")
+        if myHRP and hrp == myHRP and currentEffect then
+            ourBallEffect = true
+            lastBallEffectTime = tick()
+            return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
         end
     end
-    
-    -- Allow all other effects to pass through
+    if effect == "BallEffect" then
+        local withinWindow = (tick() - lastBallEffectTime) < 0.5
+        if (ourBallEffect or withinWindow) and currentEffect then
+            ourBallEffect = false
+            return oldEffect(self, effect, currentEffect, args[2], args[3], args[4], args[5])
+        end
+    end
     return oldEffect(self, effect, unpack(args))
 end
 
