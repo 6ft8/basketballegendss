@@ -72,44 +72,66 @@ local bar = gui.Visual.Shooting.Bar
 local btn = gui.Main.Mobile.Holder.Shoot
 local contestMeter = gui.Visual.ShotInfo.Contest.Meter
 
-
 local shotEnabled  = true
 local ShotAccuracy = 1.0
+local autoMixEnabled = false
+local currentShotAccuracy = 0
 
+-- Fill speed in "bar scale per second" (1.0 = full fill in 1 second)
+local FILL_SPEED = 1.25 
 
-local autoMixEnabled    = false
-
+-- Connection tracker to prevent overlapping fill loops
+local fillConnection = nil
 
 local function getAutoMixAccuracy()
     return math.random(1, 10) <= 3 and 1.0 or 0.95
 end
 
+local function cancelFill()
+    if fillConnection then
+        fillConnection:Disconnect()
+        fillConnection = nil
+    end
+end
 
 local function shoot()
     if not shotEnabled then return end
     local char = player.Character
-    if char and char:FindFirstChild("Basketball") then
-        local accuracy
-        if autoMixEnabled then
-            accuracy = getAutoMixAccuracy()
-        else
-            accuracy = ShotAccuracy
-        end
-        currentShotAccuracy = accuracy
-        bar:TweenSize(UDim2.fromScale(1, accuracy), Enum.EasingDirection.Out, Enum.EasingStyle.Linear, Config.TweenTime, true)
-        bar.Size = UDim2.fromScale(1, accuracy)
+    if not (char and char:FindFirstChild("Basketball")) then return end
+
+    local accuracy
+    if autoMixEnabled then
+        accuracy = getAutoMixAccuracy()
+    else
+        accuracy = ShotAccuracy
     end
+    accuracy = math.clamp(accuracy, 0, 1)
+    currentShotAccuracy = accuracy
+
+    -- Stop any existing fill loop before starting a new shot
+    cancelFill()
+
+    local fill = 0
+    bar.Size = UDim2.fromScale(1, 0)
+
+    fillConnection = RunService.RenderStepped:Connect(function(dt)
+        if not bar or not bar.Parent then
+            cancelFill()
+            return
+        end
+
+        fill = math.min(fill + FILL_SPEED * dt, accuracy)
+        bar.Size = UDim2.fromScale(1, fill)
+
+        if fill >= accuracy then
+            cancelFill()
+        end
+    end)
 end
 
-
-
-
-for _, e in ipairs({"MouseButton1Click", "MouseButton1Down", "Activated"}) do
-    btn[e]:Connect(shoot)
-end
-
-UserInputService.InputBegan:Connect(function(i, g)
-    if not g and i.KeyCode == Config.ShootKey then shoot() end
+-- Clean up fill connection if player dies/respawns
+player.CharacterRemoving:Connect(function()
+    cancelFill()
 end)
 
 --// ================================
