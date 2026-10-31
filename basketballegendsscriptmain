@@ -77,10 +77,10 @@ local ShotAccuracy = 1.0
 local autoMixEnabled = false
 local currentShotAccuracy = 0
 
--- Fill speed in "bar scale per second" (1.0 = full fill in 1 second)
-local FILL_SPEED = 1.25 
+-- Natural meter fill time (in seconds from 0% to 100%)
+-- Increase this number if you want the rise to be slower/more gradual.
+local FILL_TIME = 1.3 
 
--- Connection tracker to prevent overlapping fill loops
 local fillConnection = nil
 
 local function getAutoMixAccuracy()
@@ -108,28 +108,37 @@ local function shoot()
     accuracy = math.clamp(accuracy, 0, 1)
     currentShotAccuracy = accuracy
 
-    -- Stop any existing fill loop before starting a new shot
+    -- Cancel any active fill loop before starting a new one
     cancelFill()
 
-    local fill = 0
+    local startTime = tick()
     bar.Size = UDim2.fromScale(1, 0)
 
-    fillConnection = RunService.RenderStepped:Connect(function(dt)
+    fillConnection = RunService.RenderStepped:Connect(function()
         if not bar or not bar.Parent then
             cancelFill()
             return
         end
 
-        fill = math.min(fill + FILL_SPEED * dt, accuracy)
-        bar.Size = UDim2.fromScale(1, fill)
+        local elapsed = tick() - startTime
+        local progress = math.clamp(elapsed / FILL_TIME, 0, accuracy)
+        
+        bar.Size = UDim2.fromScale(1, progress)
 
-        if fill >= accuracy then
+        if progress >= accuracy then
             cancelFill()
         end
     end)
 end
 
--- Clean up fill connection if player dies/respawns
+for _, e in ipairs({"MouseButton1Click", "MouseButton1Down", "Activated"}) do
+    btn[e]:Connect(shoot)
+end
+
+UserInputService.InputBegan:Connect(function(i, g)
+    if not g and i.KeyCode == Config.ShootKey then shoot() end
+end)
+
 player.CharacterRemoving:Connect(function()
     cancelFill()
 end)
