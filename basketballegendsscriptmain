@@ -80,11 +80,16 @@ local currentShotAccuracy = 0
 -- Fill speed in "bar scale per second" (1.0 = full fill in 1 second)
 local FILL_SPEED = 1.25 
 
--- Connection tracker to prevent overlapping fill loops
 local fillConnection = nil
+local shotActive = false
 
 local function getAutoMixAccuracy()
     return math.random(1, 10) <= 3 and 1.0 or 0.95
+end
+
+local function setMeterLocked(locked)
+    shotActive = locked
+    player:SetAttribute("MeterLocked", locked)
 end
 
 local function cancelFill()
@@ -94,8 +99,15 @@ local function cancelFill()
     end
 end
 
+local function finalizeShot(accuracy)
+    cancelFill()
+    currentShotAccuracy = accuracy
+    bar.Size = UDim2.fromScale(1, accuracy)
+    setMeterLocked(false)
+end
+
 local function shoot()
-    if not shotEnabled then return end
+    if not shotEnabled or shotActive then return end
     local char = player.Character
     if not (char and char:FindFirstChild("Basketball")) then return end
 
@@ -106,9 +118,8 @@ local function shoot()
         accuracy = ShotAccuracy
     end
     accuracy = math.clamp(accuracy, 0, 1)
-    currentShotAccuracy = accuracy
 
-    -- Stop any existing fill loop before starting a new shot
+    setMeterLocked(true)
     cancelFill()
 
     local fill = 0
@@ -117,6 +128,7 @@ local function shoot()
     fillConnection = RunService.RenderStepped:Connect(function(dt)
         if not bar or not bar.Parent then
             cancelFill()
+            setMeterLocked(false)
             return
         end
 
@@ -124,14 +136,32 @@ local function shoot()
         bar.Size = UDim2.fromScale(1, fill)
 
         if fill >= accuracy then
-            cancelFill()
+            finalizeShot(accuracy)
         end
     end)
 end
 
--- Clean up fill connection if player dies/respawns
+-- Connect mobile button securely (guarded by shotActive)
+for _, e in ipairs({"MouseButton1Click", "MouseButton1Down", "Activated"}) do
+    if btn[e] then
+        btn[e]:Connect(function()
+            if player:GetAttribute("MeterLocked") then return end
+            shoot()
+        end)
+    end
+end
+
+-- Connect keyboard input using your Config keybind
+UserInputService.InputBegan:Connect(function(i, g)
+    if not g and i.KeyCode == Config.ShootKey then
+        if player:GetAttribute("MeterLocked") then return end
+        shoot()
+    end
+end)
+
 player.CharacterRemoving:Connect(function()
     cancelFill()
+    setMeterLocked(false)
 end)
 --// ================================
 --// STEAL REACH LOGIC
